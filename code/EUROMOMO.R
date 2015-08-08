@@ -15,7 +15,8 @@ names(aggr7)[names(aggr7)=="GROUP"] <- "group"
 aggr7 <- aggr7[,c("Version", "Model", "source", "country", "group", "wk", "WoDi", "YoDi", 
       "wk2", "nb", "nbr", "nbc", "UCIc", "LCIc", "UPIc", "LPIc", "Pnb", "UPIb2", "LCIb", 
       "UCIb", "excess", "UCIe", "LCIe", "zscore", "DOTm", "DOTc", "DOTb", "DOTz", "DOTzm", 
-      "Spring", "Autumn", "CUSUM", "FLAG", "k", "ARL0", "h")]
+      "Spring", c("Autumn","Automn")[glb$useAUTOMN+1], 
+      "CUSUM", "FLAG", "k", "ARL0", "h")]
   
 # DateoA, YoAi and WoAi gives the time when the data where aggregated,
 # which should ideally be the week of output transfer to EuroMOMO
@@ -27,11 +28,16 @@ aggr7$WoAi <- glb$WOAI
 aggr7$flag[aggr7$wk>glb$WEEK2 - 7] <- 1
 aggr7$flag[aggr7$wk<glb$WEEK2 - 6] <- 0
 
-aggr7 <- aggr7[,c("Version", "Model", "source", "country", "group", "DateoA", "WoAi", "YoAi", "WoDi", "YoDi", "wk2", "UCIc", "LCIc", "nbr", "excess", "zscore", "DOTc", "DOTb", "DOTz", "Pnb", "Spring", "Autumn", "nb", "nbc", "UPIc", "LPIc", "UPIb2", "LCIb", "UCIb", "UCIe", "LCIe", "DOTm", "DOTzm", "CUSUM", "FLAG", "k", "ARL0", "h")]
+if (!glb$datesISO) {
+  months.en <- c("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
+  aggr7$DateoA <- paste(format(aggr7$DateoA, "%d"), months.en[as.integer(format(aggr7$DateoA, "%m"))], format(aggr7$DateoA, "%Y"), sep="")
+}
+
+aggr7 <- aggr7[,c("Version", "Model", "source", "country", "group", "DateoA", "WoAi", "YoAi", "WoDi", "YoDi", "wk2", "UCIc", "LCIc", "nbr", "excess", "zscore", "DOTc", "DOTb", "DOTz", "Pnb", "Spring", c("Autumn","Automn")[glb$useAUTOMN+1], "nb", "nbc", "UPIc", "LPIc", "UPIb2", "LCIb", "UCIb", "UCIe", "LCIe", "DOTm", "DOTzm", "CUSUM", "FLAG", "k", "ARL0", "h")]
 if (glb$DEBUG) write.dta(aggr7, sprintf("%s/EUROMOMO%s-COMP-%s-%s-%s-%s.dta", glb$COMPLETE, glb$VERSION, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
 toBeMerged$euromomoComplete[[length(toBeMerged$euromomoComplete)+1]] <- aggr7 # Keep for later merging
 
-aggr7 <- aggr7[,c("Version", "Model", "source", "country", "group", "DateoA", "WoAi", "YoAi", "WoDi", "YoDi", "wk2", "zscore", "DOTz", "Spring", "Autumn", "FLAG", "k", "ARL0", "h")]
+aggr7 <- aggr7[,c("Version", "Model", "source", "country", "group", "DateoA", "WoAi", "YoAi", "WoDi", "YoDi", "wk2", "zscore", "DOTz", "Spring", c("Autumn","Automn")[glb$useAUTOMN+1], "FLAG", "k", "ARL0", "h")]
 if (glb$DEBUG) write.dta(aggr7, sprintf("%s/EUROMOMO%s-REST-%s-%s-%s-%s.dta", glb$RESTRICTED, glb$VERSION, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
 toBeMerged$euromomoRestricted[[length(toBeMerged$euromomoRestricted)+1]] <- aggr7 # Keep for later merging
 

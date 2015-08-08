@@ -79,7 +79,7 @@ if (glb$DEBUG) write.dta(temp,
 
 temp <- calcPeriod(aggr5, 40, 20)
 toBeMerged$cumWinter[[length(toBeMerged$cumWinter)+1]] <- temp   # Keep for later merging
-write.dta(temp, 
+if (glb$DEBUG) write.dta(temp, 
   sprintf("%s/CUMULATIVE-WINTER-w40-w20-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
 
 
@@ -87,7 +87,7 @@ write.dta(temp,
 
 temp <- calcPeriod(aggr5, 21, 39)
 toBeMerged$cumSummer[[length(toBeMerged$cumSummer)+1]] <- temp   # Keep for later merging
-write.dta(temp, 
+if (glb$DEBUG) write.dta(temp, 
   sprintf("%s/CUMULATIVE-SUMMER-w21-w39-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
 
 
@@ -95,7 +95,7 @@ write.dta(temp,
 
 temp <- calcPeriod(aggr5, 1, 53)
 toBeMerged$cumYear[[length(toBeMerged$cumYear)+1]] <- temp   # Keep for later merging
-write.dta(temp, 
+if (glb$DEBUG) write.dta(temp, 
   sprintf("%s/CUMULATIVE-YEAR-w1-w53-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
 
 
@@ -103,6 +103,6 @@ write.dta(temp,
 
 temp <- calcPeriod(aggr5, 27, 26)
 toBeMerged$cumSeason[[length(toBeMerged$cumSeason)+1]] <- temp   # Keep for later merging
-write.dta(temp, 
+if (glb$DEBUG) write.dta(temp, 
   sprintf("%s/CUMULATIVE-SEASON-w27-w26-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
 

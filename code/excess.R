@@ -64,7 +64,7 @@ aggr5$CONDpred[aggr5$COND6 == 1] <- 1
 
 # Use glm2() if package glm2 is available, in order to improve convergence properties
 # (This is equivalent to the option irls in stata glm)
-glmToUse <- c("glm", "glm2")[(glb$USEglm2 && suppressWarnings(require(glm2)))+1]
+glmToUse <- c("glm", "glm2")[(glb$USEglm2 && suppressWarnings(require(glm2, quietly=TRUE)))+1]
 
 if (unique(aggr5$GROUP) %in% glb$LINE) {
   m1 <- do.call(glmToUse, list(nbc ~ wk, data=subset(aggr5, CONDmodel==1), family=poisson))
@@ -132,9 +132,9 @@ aggr5$DOTzm[which(aggr5$COND3==1 & aggr5$COND4==1 & aggr5$COND5==1)] <- aggr5$zs
 
 aggr5 <- aggr5[aggr5$wk<=glb$WEEK+1,]
 
-aggr5$Version = glb$VERSION
-aggr5$Spring = paste("(WoDi>", glb$SPRING[1], " & WoDi<", glb$SPRING[2], ")", sep="")
-aggr5$Autumn = paste("(WoDi>", glb$AUTUMN[1], " & WoDi<", glb$AUTUMN[2], ")", sep="")
+aggr5$Version <- glb$VERSION
+aggr5$Spring <- paste("(WoDi>", glb$SPRING[1], " & WoDi<", glb$SPRING[2], ")", sep="")
+aggr5[,c("Autumn","Automn")[glb$useAUTOMN+1]] <- paste("(WoDi>", glb$AUTUMN[1], " & WoDi<", glb$AUTUMN[2], ")", sep="")
 
 
 # CUSUM
@@ -184,7 +184,8 @@ aggr5 <- aggr5[,c("Version", "Model", "GROUP", "WoDi", "YoDi", "wk", "wk2",
   "season", "Sweek", "nb", "nb2", "nbr", "nbc", "UCIc", "LCIc", "UPIc", "LPIc", "Pnb", 
   names(aggr5)[grep("UPIb", names(aggr5), fixed=TRUE)], "LCIb", "UCIb", "excess", 
   "UCIe", "LCIe", "resi", "zscore", "DOTm", "DOTc", "DOTb", "DOTz", "DOTzm",
-  "COND6", "CONDmodel", "Spring", "Autumn", "CUSUM", "FLAG", "k", "ARL0", "h")]
+  "COND6", "CONDmodel", "Spring", c("Autumn","Automn")[glb$useAUTOMN+1], 
+  "CUSUM", "FLAG", "k", "ARL0", "h")]
 
 write.dta(aggr5, sprintf("%s/DATA-MOMO%s-%s-%s-%s-%s.dta", glb$FINAL, glb$VERSION, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
 write.table(aggr5, row.names=FALSE, sep="\t", na="", file=sprintf("%s/DATA-MOMO%s-%s-%s-%s-%s.txt", glb$FINAL, glb$VERSION, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))

@@ -9,14 +9,14 @@ finalOutput <- list()
 
 
 finalOutput$euromomoComplete <- do.call(rbind, toBeMerged$euromomoComplete)
-write.dta(finalOutput$euromomoComplete, 
+if (glb$DEBUG) write.dta(finalOutput$euromomoComplete, 
   sprintf("%s/EUROMOMO%s-COMPLETE-%s-%s-%s.dta", glb$COMPLETE, glb$VERSION, glb$country, glb$YOSI, glb$WOSI))
 write.table(finalOutput$euromomoComplete, row.names=FALSE, sep=",", quote=FALSE, na="",
   file=sprintf("%s/EUROMOMO%s-COMPLETE-%s-%s-%s.txt", glb$COMPLETE, glb$VERSION, glb$country, glb$YOSI, glb$WOSI))
 
 
 finalOutput$euromomoRestricted <- do.call(rbind, toBeMerged$euromomoRestricted)
-write.dta(finalOutput$euromomoRestricted, 
+if (glb$DEBUG) write.dta(finalOutput$euromomoRestricted, 
   sprintf("%s/EUROMOMO%s-RESTRICTED-%s-%s-%s.dta", glb$RESTRICTED, glb$VERSION, glb$country, glb$YOSI, glb$WOSI))
 write.table(finalOutput$euromomoRestricted, row.names=FALSE, sep=",", quote=FALSE, na="",
   file=sprintf("%s/EUROMOMO%s-RESTRICTED-%s-%s-%s.txt", glb$RESTRICTED, glb$VERSION, glb$country, glb$YOSI, glb$WOSI))

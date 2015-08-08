@@ -38,13 +38,6 @@ glb$RYEAR = 2008
 glb$RMONTH = 01
 glb$RDAY = 01
 
-# Setting this to TRUE saves all intermediate files
-glb$DEBUG <- FALSE
-
-# Use glm2() if package glm2 is available, in order to improve convergence properties ?
-glb$USEglm2 <- FALSE
-
-
 
 # FILES NEEDED FOR ANALYSIS 
 # (Directories must exist, no \ at the end.)
@@ -66,7 +59,6 @@ glb$CODEDIR <- "./code"
 glb$WDIR <- "./output"
 
 
-
 # CHOICE OF PARAMETERS FOR THE ANALYSIS
 
 # chose the number of weeks to remove for modeling delay
@@ -76,10 +68,25 @@ glb$back <- 3
 # choose length of retrospective historical study period in weeks
 glb$WWW <- 290
 
-
 # START OF CUSUM CHART: Week for CUSUM to be set to 0
 glb$Ysum = 2009
 glb$Wsum = 34
+
+
+# ADDITIONAL OPTIONS
+
+# Setting this to TRUE saves all intermediate files
+glb$DEBUG <- FALSE
+
+# Use glm2() if package glm2 is available, in order to improve convergence properties ?
+# (This is equivalent to using irls option in Stata glm)
+glb$USEglm2 <- TRUE
+
+# Keep using the column name "Automn" (instead of "Autumn") as in Stata MOMOpack ?
+glb$useAUTOMN <- FALSE
+
+# When saving dates in text files, use ISO format (standard in R) instead of the Stata "%d" format ?
+glb$datesISO <- TRUE
 
 
 

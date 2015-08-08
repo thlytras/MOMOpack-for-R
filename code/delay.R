@@ -100,7 +100,7 @@ for (XX in 0:glb$back) {
 
 # we generate the CORRECTED number of death
 aggr5$nbc[aggr5$wk < glb$WEEK2] <- aggr5$nb[aggr5$wk < glb$WEEK2]
-aggr5$nbc[aggr5$wk >= glb$WEEK2 & aggr5$wk <= glb$WEEK] <- pmax(aggr5$pred[aggr5$wk >= glb$WEEK2 & aggr5$wk <= glb$WEEK], aggr5$nb[aggr5$wk >= glb$WEEK2 & aggr5$wk <= glb$WEEK])
+aggr5$nbc[aggr5$wk >= glb$WEEK2 & aggr5$wk <= glb$WEEK] <- pmax(aggr5$pred[aggr5$wk >= glb$WEEK2 & aggr5$wk <= glb$WEEK], aggr5$nb[aggr5$wk >= glb$WEEK2 & aggr5$wk <= glb$WEEK], na.rm=TRUE)
 
 
 write.dta(aggr5, sprintf("%s/delay-%s-%s-%s-%s.dta", glb$CONTROL, glb$GROUP, glb$country, glb$YOSI, glb$WOSI))

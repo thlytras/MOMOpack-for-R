@@ -1,4 +1,4 @@
-# MOMOpack for R version 0.1
+# MOMOpack for R version
 
 # Originally MOMOpack V 4.3 for Stata, 
 # created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. 
@@ -7,7 +7,7 @@
 
 # Function to automate all the period calculations done in this script
 
-calcPeriod <- function(aggr, WStart, WEnd, wk=WStart){
+calcPeriodMOMO <- function(aggr, WStart, WEnd, wk=WStart){
   if (WStart == WEnd) stop("WStart and WEnd cannot be identical!")
   pfr <- aggr[order(aggr$YoDi, aggr$WoDi),]
   MODEL <- unique(pfr$Model)
@@ -55,8 +55,8 @@ calcPeriod <- function(aggr, WStart, WEnd, wk=WStart){
   pfr <- pfr[,c("YearStart", "WeekStart", "YearEnd", "WeekEnd", "Duration_week", "sumTotal", "sumBaseline", "sumExcess", "Zzscore")]
   pfr <- as.data.frame(t(pfr))
   colnames(pfr) <- paste("v", 1:ncol(pfr), sep="")
-  pfr$Group <- glb$GROUP
-  pfr$Version <- glb$VERSION
+  pfr$Group <- unique(aggr$GROUP)
+  pfr$Version <- unique(aggr$Version)
   pfr$Model <- MODEL
   pfr$Indicator <- c("Year of Period Start", "Week of Period Start", "Year of Period End", "Week of Period End", 
 	  "Duration of the Study Period", "Total number of deaths", "Expected number of death (baseline)", 
@@ -65,44 +65,4 @@ calcPeriod <- function(aggr, WStart, WEnd, wk=WStart){
 
   return(pfr)
 }
-
-
-
-# 1. using the chosen Period
-temp <- calcPeriod(aggr5, glb$WStart, glb$WEnd)
-toBeMerged$cumChoice[[length(toBeMerged$cumChoice)+1]] <- temp   # Keep for later merging
-if (glb$DEBUG) write.dta(temp, 
-  sprintf("%s/CUMULATIVE-Choice-w%s-w%s-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$WStart, glb$WEnd, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
-
-
-# 2. WINTER EXCESS WEEK 40 to 20
-
-temp <- calcPeriod(aggr5, 40, 20)
-toBeMerged$cumWinter[[length(toBeMerged$cumWinter)+1]] <- temp   # Keep for later merging
-if (glb$DEBUG) write.dta(temp, 
-  sprintf("%s/CUMULATIVE-WINTER-w40-w20-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
-
-
-# 3. SUMMER EXCESS WEEK 21 to 39
-
-temp <- calcPeriod(aggr5, 21, 39)
-toBeMerged$cumSummer[[length(toBeMerged$cumSummer)+1]] <- temp   # Keep for later merging
-if (glb$DEBUG) write.dta(temp, 
-  sprintf("%s/CUMULATIVE-SUMMER-w21-w39-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
-
-
-# 4. EXCESS FULL YEAR WEEK 1 to 53
-
-temp <- calcPeriod(aggr5, 1, 53, glb$WStart)
-toBeMerged$cumYear[[length(toBeMerged$cumYear)+1]] <- temp   # Keep for later merging
-if (glb$DEBUG) write.dta(temp, 
-  sprintf("%s/CUMULATIVE-YEAR-w1-w53-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
-
-
-# 5. EXCESS FULL SEASON w27 to w26
-
-temp <- calcPeriod(aggr5, 27, 26)
-toBeMerged$cumSeason[[length(toBeMerged$cumSeason)+1]] <- temp   # Keep for later merging
-if (glb$DEBUG) write.dta(temp, 
-  sprintf("%s/CUMULATIVE-SEASON-w27-w26-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))
 

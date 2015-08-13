@@ -1,3 +1,10 @@
+# MOMOpack for R
+
+# Originally MOMOpack V 4.3 for Stata, 
+# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. 
+# Ported into R by Theodore Lytras <thlytras@gmail.com>
+
+
 
 # Function to replicate the functionality of mkspline command in stata
 # (Copied from old CRAN package "ares") 
@@ -112,3 +119,10 @@ vecshift <- function(x, shift=0) {
 NAto0 <- function(x) { x[is.na(x)] <- 0; x }
 
 
+
+# Transfer attributes
+transferMOMOattributes <- function(target, source, except=c()) {
+  attrToKeep <- names(attributes(source))[!(names(attributes(source)) %in% c("names", "class", "row.names", except))]
+  for (x in attrToKeep) attr(target, x) <- attr(source, x)
+  target
+}

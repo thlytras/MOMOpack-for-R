@@ -9,7 +9,7 @@
 
 # We make the AGGREGATION by week of death 
 groupfile <- groupfile[order(groupfile$YoDi, groupfile$WoDi),]
-aggr1 <- aggregate(groupfile[,c("nb", "nb2", "WR0", "WR1", "WR2", "WR3")], by=groupfile[,c("YoDi","WoDi")], sum)
+aggr1 <- aggregate(groupfile[,c("nb", "nb2", "WR0", "WR1", "WR2", "WR3")], by=groupfile[,c("YoDi","WoDi")], sum, na.rm=TRUE)
 aggr1 <- aggr1[order(aggr1$YoDi, aggr1$WoDi),]
 
 if (glb$DEBUG) write.dta(aggr1, sprintf("%s/temp.dta", glb$WDIR))
@@ -17,7 +17,7 @@ if (glb$DEBUG) write.dta(aggr1, sprintf("%s/temp.dta", glb$WDIR))
 
 # Creation total number of registration 
 # for the numbre of registration, we make an aggregation the week of registration
-aggr2 <- aggregate(groupfile[,c("nb")], by=groupfile[,c("YoRi","WoRi")], sum)
+aggr2 <- aggregate(groupfile[,c("nb")], by=groupfile[,c("YoRi","WoRi")], sum, na.rm=TRUE)
 aggr2 <- aggr2[order(aggr2$YoRi, aggr2$WoRi),]
 names(aggr2)[3] <- "nbr"
 if (glb$DEBUG) write.dta(aggr2, sprintf("%s/temp1.dta", glb$WDIR))

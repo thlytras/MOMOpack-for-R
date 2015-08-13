@@ -12,10 +12,6 @@ groupfile <- groupfile[order(groupfile$YoDi, groupfile$WoDi),]
 aggr1 <- aggregate(groupfile[,c("nb", "nb2", "WR0", "WR1", "WR2", "WR3")], by=groupfile[,c("YoDi","WoDi")], sum)
 aggr1 <- aggr1[order(aggr1$YoDi, aggr1$WoDi),]
 
-# we make a unique identifier of the year and the week of death  
-# for further merging. 
-aggr1$YW <- paste(aggr1$YoDi, aggr1$WoDi, sep="")
-aggr1 <- aggr1[order(aggr1$YW),]
 if (glb$DEBUG) write.dta(aggr1, sprintf("%s/temp.dta", glb$WDIR))
 
 
@@ -24,15 +20,12 @@ if (glb$DEBUG) write.dta(aggr1, sprintf("%s/temp.dta", glb$WDIR))
 aggr2 <- aggregate(groupfile[,c("nb")], by=groupfile[,c("YoRi","WoRi")], sum)
 aggr2 <- aggr2[order(aggr2$YoRi, aggr2$WoRi),]
 names(aggr2)[3] <- "nbr"
-aggr2$YW <- paste(aggr2$YoRi, aggr2$WoRi, sep="")
-aggr2 <- aggr2[order(aggr2$YW),]
 if (glb$DEBUG) write.dta(aggr2, sprintf("%s/temp1.dta", glb$WDIR))
 
 
-aggr3 <- merge(aggr1, aggr2, all=TRUE)
-aggr3$WoRi <- NULL
-aggr3$YoRi <- NULL
-aggr3 <- aggr3[order(aggr3$YW),]
+aggr3 <- merge(aggr1, aggr2, all=TRUE, by.x=c("YoDi","WoDi"), by.y=c("YoRi","WoRi"))
+aggr3 <- aggr3[order(aggr3$YoDi, aggr3$WoDi),]
+
 
 if (glb$DEBUG) write.dta(aggr3, sprintf("%s/temp.dta", glb$WDIR))
 
@@ -42,16 +35,12 @@ if (glb$DEBUG) write.dta(aggr3, sprintf("%s/temp.dta", glb$WDIR))
 # we ensure that there is no missing weeks in the series
 # by merging with a complete time series from 1960 until 2020
 
-time.txt <- read.table(sprintf("%s/time.txt", glb$CODEDIR), header=TRUE)
-time.txt <- time.txt[order(time.txt$year, time.txt$week),]
-time.txt$YW <- paste(time.txt$year, time.txt$week, sep="")
-time.txt <- time.txt[order(time.txt$YW),]
+time.txt <- seq.Date(as.Date("1961-1-5"), as.Date("2021-1-5"), by="week")
+time.txt <- as.data.frame(isoweek(time.txt, "matrix")[,2:1])
+names(time.txt) <- c("YoDi", "WoDi")
 
 aggr4 <- merge(time.txt, aggr3, all=TRUE)
-aggr4 <- aggr4[order(aggr4$year, aggr4$week),]
-
-aggr4$WoDi[is.na(aggr4$WoDi)] <- aggr4$week[is.na(aggr4$WoDi)]
-aggr4$YoDi[is.na(aggr4$YoDi)] <- aggr4$year[is.na(aggr4$YoDi)]
+aggr4 <- aggr4[order(aggr4$YoDi, aggr4$WoDi),]
 
 if (glb$DEBUG) write.dta(aggr4, sprintf("%s/temp.dta", glb$WDIR))
 
@@ -92,20 +81,18 @@ hfile$closedA[hfile$NoW>0 & hfile$NoW<=glb$NOA] <- hfile$closed[hfile$NoW>0 & hf
 hfile2 <- aggregate(hfile[,c("closed","closedA")], by=hfile[,c("YoWi","WoWi")], sum, na.rm=TRUE)
 hfile2 <- hfile2[order(hfile2$YoWi, hfile2$WoWi),]
 
-# generation of the variable used as merging key
-hfile2$YW <- paste(hfile2$YoW, hfile2$WoW, sep="")
-hfile2 <- hfile2[order(hfile2$YW),]
 if (glb$DEBUG) write.dta(hfile2, sprintf("%s/temp2.dta", glb$WDIR))
 
 
 # merging with the mortality file temporarily saved as temp.dta
-aggr5 <- merge(aggr4, hfile2, all=TRUE)
+aggr5 <- merge(aggr4, hfile2, all=TRUE, by.x=c("YoDi","WoDi"), by.y=c("YoWi","WoWi"))
 
 # we keep only the valid part of the data set
-aggr5$YoDi[is.na(aggr5$YoDi) & aggr5$YoWi<=glb$YOAI+1] <- aggr5$YoWi[is.na(aggr5$YoDi) & aggr5$YoWi<=glb$YOAI+1]
-aggr5$WoDi[is.na(aggr5$WoDi) & aggr5$YoWi<=glb$YOAI+1] <- aggr5$WoWi[is.na(aggr5$WoDi) & aggr5$YoWi<=glb$YOAI+1]
+aggr5$YoDi[is.na(aggr5$YoDi) & aggr5$YoDi<=glb$YOAI+1] <- aggr5$YoDi[is.na(aggr5$YoDi) & aggr5$YoDi<=glb$YOAI+1]
+aggr5$WoDi[is.na(aggr5$WoDi) & aggr5$YoDi<=glb$YOAI+1] <- aggr5$WoDi[is.na(aggr5$WoDi) & aggr5$YoDi<=glb$YOAI+1]
 aggr5 <- aggr5[order(aggr5$YoDi, aggr5$WoDi),]
 
+aggr5$YW <- paste(aggr5$YoDi, aggr5$WoDi, sep="")
 
 
 aggr5 <- aggr5[,c("YW","WoDi","YoDi","closed","closedA","nb","nb2","nbr", colnames(aggr5)[grep("WR", colnames(aggr5), fixed=TRUE)])]

@@ -80,7 +80,7 @@ plotCusumGraph(data=subset(aggr8, COND6==1), cex=0.67,
 plotCusumGraph(data=subset(aggr8, COND6==1), cex=0.67,
     y=c("nbc", "DOTm", "DOTc", "Pnb", names(aggr8)[grep("UPIb", names(aggr8))]),lwd=3, lty=1, 
     ylab="Mortality\nseries",
-    col = c("navyblue", "slateblue", "seagreen", "orange2", rep("yellow", c(3:1,3:1,3:1)[1:length(grep("UPIb", names(aggr5)))])),
+    col = c("navyblue", "slateblue", "seagreen", "orange2", paste("yellow", c(3:1,3:1,3:1)[1:length(grep("UPIb", names(aggr5)))], sep="")),
     legend = c("Number of deaths", "Data used in the model", "Corrected number of deaths", "Baseline",
 	paste("Prediction interval +", 2*length(grep("UPIb", names(aggr8))), " Zscores", sep="")))
 

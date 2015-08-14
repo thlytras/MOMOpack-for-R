@@ -9,7 +9,7 @@
 
 # We make the AGGREGATION by week of death 
 groupfile <- groupfile[order(groupfile$YoDi, groupfile$WoDi),]
-aggr1 <- aggregate(groupfile[,c("nb", "nb2", "WR0", "WR1", "WR2", "WR3")], by=groupfile[,c("YoDi","WoDi")], sum, na.rm=TRUE)
+aggr1 <- aggregate(groupfile[,c("nb", "nb2", colnames(groupfile)[grep("WR", colnames(groupfile), fixed=TRUE)])], by=groupfile[,c("YoDi","WoDi")], sum, na.rm=TRUE)
 aggr1 <- aggr1[order(aggr1$YoDi, aggr1$WoDi),]
 
 if (glb$DEBUG) write.dta(aggr1, sprintf("%s/temp.dta", glb$WDIR))

@@ -104,11 +104,11 @@ mfile$nb2[mfile$DoR <= mfile$DoA] = mfile$nb[mfile$DoR <= mfile$DoA]
 mfile <- mfile[order(mfile$YoDi, mfile$WoDi, mfile$DoD),]
 
 mfile$diff <- mfile$WoRi - mfile$WoDi
-mfile$diff[(mfile$YoRi - mfile$YoDi) == 1] <- mfile$diff[(mfile$YoRi - mfile$YoDi) == 1] + 52 + as.integer(mfile$WoDi[(mfile$YoRi - mfile$YoDi) == 1]==53)
-mfile$diff[(mfile$YoRi - mfile$YoDi) == 2] <- mfile$diff[(mfile$YoRi - mfile$YoDi) == 2] + 104 + as.integer(mfile$WoDi[(mfile$YoRi - mfile$YoDi) == 2]==53)
-mfile$diff[(mfile$YoRi - mfile$YoDi) == 3] <- mfile$diff[(mfile$YoRi - mfile$YoDi) == 3] + 156 + as.integer(mfile$WoDi[(mfile$YoRi - mfile$YoDi) == 3]==53)
-mfile$diff[(mfile$YoRi - mfile$YoDi) == 4] <- mfile$diff[(mfile$YoRi - mfile$YoDi) == 4] + 208 + as.integer(mfile$WoDi[(mfile$YoRi - mfile$YoDi) == 4]==53)
-mfile$diff[(mfile$YoRi - mfile$YoDi) == 5] <- mfile$diff[(mfile$YoRi - mfile$YoDi) == 5] + 260 + as.integer(mfile$WoDi[(mfile$YoRi - mfile$YoDi) == 5]==53)
+mfile$diff[which((mfile$YoRi - mfile$YoDi) == 1)] <- mfile$diff[which((mfile$YoRi - mfile$YoDi) == 1)] + 52 + as.integer(mfile$WoDi[which((mfile$YoRi - mfile$YoDi) == 1)]==53)
+mfile$diff[which((mfile$YoRi - mfile$YoDi) == 2)] <- mfile$diff[which((mfile$YoRi - mfile$YoDi) == 2)] + 104 + as.integer(mfile$WoDi[which((mfile$YoRi - mfile$YoDi) == 2)]==53)
+mfile$diff[which((mfile$YoRi - mfile$YoDi) == 3)] <- mfile$diff[which((mfile$YoRi - mfile$YoDi) == 3)] + 156 + as.integer(mfile$WoDi[which((mfile$YoRi - mfile$YoDi) == 3)]==53)
+mfile$diff[which((mfile$YoRi - mfile$YoDi) == 4)] <- mfile$diff[which((mfile$YoRi - mfile$YoDi) == 4)] + 208 + as.integer(mfile$WoDi[which((mfile$YoRi - mfile$YoDi) == 4)]==53)
+mfile$diff[which((mfile$YoRi - mfile$YoDi) == 5)] <- mfile$diff[which((mfile$YoRi - mfile$YoDi) == 5)] + 260 + as.integer(mfile$WoDi[which((mfile$YoRi - mfile$YoDi) == 5)]==53)
 
 
 # we must model for each week, what we know at the day of aggregation. 

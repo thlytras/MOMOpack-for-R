@@ -19,14 +19,15 @@ mfile$DoR <- as.Date(mfile$DoR, origin="1960-1-1")
 
 # Date of aggregation 
 mfile$DoA <- as.Date(with(glb, paste(YEAR, MONTH, DAY, sep="-")))
+temp <- as.POSIXlt(mfile$DoA)
 
 # Name of the day of Aggregation (Monday =1 to Sunday = 7)
-mfile$NoA <- format(mfile$DoA, "%u")
+mfile$NoA <- temp$wday; mfile$NoA[mfile$NoA==0] <- 7
 
 # Day Month and Year of Aggregation
-mfile$DaoA = format(mfile$DoA, "%d")
-mfile$MoA = format(mfile$DoA, "%m")
-mfile$YoA = format(mfile$DoA, "%Y")
+mfile$DaoA <- temp$mday
+mfile$MoA <- temp$mon + 1
+mfile$YoA <- temp$year + 1900
 
 # ISO week & year of Aggregation
 mfile[,c("WoAi","YoAi")] <- isoweek(mfile$DoA, "matrix")
@@ -41,12 +42,13 @@ glb$NOA = mfile$NoA[1]
 # DATE OF "PERFECT" REGISTRATION = PR (when data are transmitted smoothly)
 
 mfile$DoPR <- as.Date(with(glb, paste(RYEAR, RMONTH, RDAY, sep="-")))
+temp <- as.POSIXlt(mfile$DoPR)
 
 # Day Month and Year of PR
 
-mfile$DaoPR = format(mfile$DoPR, "%d")
-mfile$MoPR = format(mfile$DoPR, "%m")
-mfile$YoPR = format(mfile$DoPR, "%Y")
+mfile$DaoPR <- temp$mday
+mfile$MoPR <- temp$mon + 1
+mfile$YoPR <- temp$year + 1900
 
 # ISO week & year of Aggregation
 
@@ -62,9 +64,10 @@ glb$WOPRI = mfile$WoPRi[1]
 # DATE VARIABLES RELATED TO THE DEATH
 
 # Day Month and Year of Death 
-mfile$DaoD = format(mfile$DoD, "%d")
-mfile$MoD = format(mfile$DoD, "%m")
-mfile$YoD = format(mfile$DoD, "%Y")
+temp <- as.POSIXlt(mfile$DoD)
+mfile$DaoD <- temp$mday
+mfile$MoD <- temp$mon + 1
+mfile$YoD <- temp$year + 1900
 # ISO week & year of Death
 mfile[,c("WoDi","YoDi")] <- isoweek(mfile$DoD, "matrix")
 
@@ -73,16 +76,17 @@ mfile[,c("WoDi","YoDi")] <- isoweek(mfile$DoD, "matrix")
 # DATE VARIABLES RELATED TO THE REGISTRATION
 
 # Day Month and Year of Registration
-mfile$DaoR = format(mfile$DoR, "%d")
-mfile$MoR = format(mfile$DoR, "%m")
-mfile$YoR = format(mfile$DoR, "%Y")
+temp <- as.POSIXlt(mfile$DoR)
+mfile$DaoR <- temp$mday
+mfile$MoR <- temp$mon + 1
+mfile$YoR <- temp$year + 1900
 
 # ISO week & year of Registration
 mfile[,c("WoRi", "YoRi")] <- isoweek(mfile$DoR, "matrix")
 mfile$YoRi[mfile$YoRi <= glb$YOPRI & mfile$WoRi <= glb$WOPRI] <- NA
 
 # Name of the day of Registration (Monday = 1 to Sunday =7)
-mfile$NoR <- format(mfile$DoR, "%u") 
+mfile$NoR <- temp$wday; mfile$NoR[mfile$NoR==0] <- 7
 
 
 

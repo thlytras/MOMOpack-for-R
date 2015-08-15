@@ -114,12 +114,14 @@ compareOutputs <- function(x1, x2, tol=10^(-5)) {
 
 cat("Comparing .dta files:\n\n")
 
-common.dta.files <- intersect(list.files(R.files.path, pattern="\\.dta$"), 
-	    list.files(Stata.files.path, pattern="\\.dta$"))
+R.dta.files <- list.files(R.files.path, pattern="\\.dta$", recursive=TRUE, full.names=TRUE)
+Stata.dta.files <- list.files(Stata.files.path, pattern="\\.dta$", recursive=TRUE, full.names=TRUE)
+
+common.dta.files <- intersect(basename(R.dta.files), basename(Stata.dta.files))
 
 for (f in common.dta.files) {
-  fR <- read.dta(sprintf("./R/%s", f))
-  fS <- read.dta(sprintf("./stata/%s", f))
+  fR <- read.dta(R.dta.files[which(basename(R.dta.files)==f)[1]])
+  fS <- read.dta(Stata.dta.files[which(basename(Stata.dta.files)==f)[1]])
 
   cat("Comparing output file '");cat(f);cat("':\n")
   compareOutputs(fR, fS, tol)
@@ -127,21 +129,23 @@ for (f in common.dta.files) {
 
 cat("\nComparing .txt files:\n\n")
 
-common.txt.files <- intersect(list.files(R.files.path, pattern="\\.txt$"), 
-	    list.files(Stata.files.path, pattern="\\.txt$"))
+R.txt.files <- list.files(R.files.path, pattern="\\.txt$", recursive=TRUE, full.names=TRUE)
+Stata.txt.files <- list.files(Stata.files.path, pattern="\\.txt$", recursive=TRUE, full.names=TRUE)
+
+common.txt.files <- intersect(basename(R.txt.files), basename(Stata.txt.files))
 
 for (f in common.txt.files) {
-  fR <- try(read.table(sprintf("./R/%s", f), header=TRUE, sep="\t"), silent=TRUE)
-  if (class(fR)=="try-error" || ncol(fR)==1) fR <- read.csv(sprintf("./R/%s", f), header=TRUE)
-  fS <- try(read.table(sprintf("./stata/%s", f), header=TRUE, sep="\t"), silent=TRUE)
-  if (class(fS)=="try-error" || ncol(fS)==1) fS <- read.csv(sprintf("./stata/%s", f), header=TRUE)
+  fR <- try(read.table(R.txt.files[which(basename(R.txt.files)==f)[1]], header=TRUE, sep="\t"), silent=TRUE)
+  if (class(fR)=="try-error" || ncol(fR)==1) fR <- read.csv(R.txt.files[which(basename(R.txt.files)==f)[1]], header=TRUE)
+  fS <- try(read.table(Stata.txt.files[which(basename(Stata.txt.files)==f)[1]], header=TRUE, sep="\t"), silent=TRUE)
+  if (class(fS)=="try-error" || ncol(fS)==1) fS <- read.csv(Stata.txt.files[which(basename(Stata.txt.files)==f)[1]], header=TRUE)
 
   cat("Comparing output file '");cat(f);cat("':\n")
   compareOutputs(fR, fS, tol)
 }
 
-extra.files.in.R.dir <- list.files(R.files.path)[!(list.files(R.files.path) %in% c(common.dta.files, common.txt.files))]
-extra.files.in.Stata.dir <- list.files(Stata.files.path)[!(list.files(Stata.files.path) %in% c(common.dta.files, common.txt.files))]
+extra.files.in.R.dir <- c(R.dta.files[which(!(basename(R.dta.files) %in% common.dta.files))], R.txt.files[which(!(basename(R.txt.files) %in% common.txt.files))])
+extra.files.in.Stata.dir <- c(Stata.dta.files[which(!(basename(Stata.dta.files) %in% common.dta.files))], Stata.txt.files[which(!(basename(Stata.txt.files) %in% common.txt.files))])
 
 if (length(c(extra.files.in.R.dir, extra.files.in.Stata.dir))>0) {
   cat("\n")

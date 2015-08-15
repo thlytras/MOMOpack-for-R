@@ -60,6 +60,7 @@ for (XX in 0:glb$back) {
 
   m1 <- suppressWarnings(glm(as.formula(paste("a", XX, " ~ CCC", XX, " + wk", sep="")), data=subset(aggr5, wk>glb$PRWEEK & wk<glb$WEEK2), family=binomial))
   aggr5[[paste("Pa", XX, sep="")]] <- predict(m1, aggr5, type="response")
+  aggr5[[paste("Pa", XX, sep="")]][which(aggr5$wk<=glb$PRWEEK | aggr5$wk>glb$WEEK)] <- NA
 
   aggr5[[paste("temp", XX, sep="")]] <- aggr5[[paste("WR", XX, sep="")]] / aggr5[[paste("Pa", XX, sep="")]]
 

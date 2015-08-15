@@ -7,7 +7,7 @@
 
 # Function to automate all the period calculations done in this script
 
-calcPeriod <- function(aggr, WStart, WEnd){
+calcPeriod <- function(aggr, WStart, WEnd, wk=WStart){
   if (WStart == WEnd) stop("WStart and WEnd cannot be identical!")
   pfr <- aggr[order(aggr$YoDi, aggr$WoDi),]
   MODEL <- unique(pfr$Model)
@@ -27,7 +27,7 @@ calcPeriod <- function(aggr, WStart, WEnd){
     pfr$Zzscore <- pfr$sumZscore / sqrt(pfr$Duration_week)
     pfr[,c("sumTotal", "sumBaseline", "sumExcess")] <- round(pfr[,c("sumTotal", "sumBaseline", "sumExcess")])
     pfr$Zzscore <- round(pfr$Zzscore, 2)
-    pfr <- pfr[pfr$WoDi==WStart,]
+    pfr <- pfr[pfr$WoDi==wk,]
   }
 
   # if the Period is over 2 years
@@ -93,7 +93,7 @@ if (glb$DEBUG) write.dta(temp,
 
 # 4. EXCESS FULL YEAR WEEK 1 to 53
 
-temp <- calcPeriod(aggr5, 1, 53)
+temp <- calcPeriod(aggr5, 1, 53, glb$WStart)
 toBeMerged$cumYear[[length(toBeMerged$cumYear)+1]] <- temp   # Keep for later merging
 if (glb$DEBUG) write.dta(temp, 
   sprintf("%s/CUMULATIVE-YEAR-w1-w53-MOMO-%s-%s-%s-%s.dta", glb$CUMULATIVE, glb$country, glb$GROUP, glb$YOSI, glb$WOSI))

@@ -68,9 +68,23 @@ for (XX in 0:glb$back) {
   od <- max(1,sum(m1$weights * m1$residuals^2)/m1$df.r)
   if (od > 1) m1 <- glm(as.formula(paste("nb2 ~ WR", XX, " + Pa", XX, " + wk", sep="")), data=subset(aggr5, wk>glb$PRWEEK & wk<glb$WEEK2), family=quasipoisson)
 
-  aggr5[[paste("pred", XX, sep="")]] <- predict(m1, aggr5, type="response")
+  tryCatch(
+    aggr5[[paste("pred", XX, sep="")]] <- predict(m1, aggr5, type="response"),
+    warning = function(w) 
+      if (conditionMessage(w)=="prediction from a rank-deficient fit may be misleading") 
+	warning(   # Giving a more informative warning
+	"In group '", glb$GROUP, "', the delay Poisson model fit for lag ", XX, " week(s)\n",
+	"        is rank deficient. Prediction may be misleading.", call.=FALSE) else warning(w)
+  )
   aggr5[[paste("pred", XX, sep="")]][aggr5$wk<=glb$PRWEEK | aggr5$wk>glb$WEEK-XX] <- NA
-  aggr5[[paste("stdp", XX, sep="")]] <- predict(m1, aggr5, se.fit=TRUE)$se.fit
+
+  tryCatch(
+    aggr5[[paste("stdp", XX, sep="")]] <- predict(m1, aggr5, se.fit=TRUE)$se.fit,
+    warning = function(w) 
+      # If we have the same warning about rank deficiency as above, there's no reason to print it twice
+      if (conditionMessage(w)!="prediction from a rank-deficient fit may be misleading") 
+	warning(w)
+  )
   aggr5[[paste("stdp", XX, sep="")]][aggr5$wk<=glb$PRWEEK | aggr5$wk>glb$WEEK-XX] <- NA
 
   aggr5[[paste("N", XX, sep="")]] <- sum(!is.na(aggr5[[paste("stdp", XX, sep="")]]))

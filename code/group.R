@@ -49,12 +49,24 @@ toBeMerged <- list(euromomoComplete = list(), euromomoRestricted = list(), table
 
 # Iterating over the age groups
 cat("Iterating over the age groups:\n")
+
+mfile$nb[is.na(mfile$nb)] <- 0
+
 for (N in with(glb, c(LINE, SPLINE, LINE_SIN, SPLINE_SIN))) {
   t2 <- system.time({ # benchmarking
     cat("- Iterating over group ");cat(N);cat("... ")
     glb$GROUP <- N
-    groupfile <- mfile[mfile[,paste("GRP", N, sep="")] & !is.na(mfile[,paste("GRP", N, sep="")]),]
-    groupfile$nb[is.na(groupfile$nb)] <- 0
+    
+    # Little trick to conserve memory: If group is Total, do NOT make a useless identical copy of the entire mortality data file.
+    if (sum(mfile[,paste("GRP", N, sep="")], na.rm=TRUE) == nrow(mfile)) {
+      groupfile <- mfile
+    } else {
+      groupfile <- mfile[mfile[,paste("GRP", N, sep="")] & !is.na(mfile[,paste("GRP", N, sep="")]),]
+    }
+
+    # This is now executed just before the loop (for the whole of 'mfile', so that if group is Total, we avoid creating a useless identical copy of 'mfile' in 'groupfile').
+    #groupfile$nb[is.na(groupfile$nb)] <- 0
+
     if (glb$DEBUG) write.dta(groupfile, sprintf("%s/group.dta", glb$WDIR))
     cat("(aggregation) "); source(sprintf("%s/aggregation.R", glb$CODEDIR))
     #source(sprintf("%s/directories.R", glb$CODEDIR)) # This is now executed at MOMOmaster.R instead of here.

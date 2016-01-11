@@ -1,6 +1,8 @@
 * Convert .dta files to Stata 12 format
 * 
-* (Run this from within the directory that contains your files)
+* (Run this from within the directory that contains your files.
+* It is needed in order to run compareMOMOoutput.R, because R reads
+* dta files only up to version 12).
 
 set more off
 

@@ -67,12 +67,25 @@ joinMOMOoutput <- function(output) {
 
 
 
-writeMOMOoutput <- function(joinedOutput, dirs, output=NULL) {
+writeMOMOoutput <- function(joinedOutput, dirs, output=NULL, emulateStata=TRUE) {
   require(foreign)
+  
+  trimDigits <- function(x) {
+    for (i in 1:ncol(x)) {
+        if (class(x[,i])=="numeric") {
+            x[,i] <- signif(x[,i], 7)
+        }
+    }
+    x
+  }
 
-  write.table(joinedOutput$EUROMOMOcomplete, row.names=FALSE, sep=",", quote=FALSE, na="",
+  write.table(
+    (if (!emulateStata) joinedOutput$EUROMOMOcomplete else trimDigits(joinedOutput$EUROMOMOcomplete)), 
+    row.names=FALSE, sep=",", quote=FALSE, na="",
     file=sprintf("%s/EUROMOMO%s-COMPLETE-%s-%s-%s.txt", dirs$COMPLETE, attr(joinedOutput, "VERSION"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
-  write.table(joinedOutput$EUROMOMOrestricted, row.names=FALSE, sep=",", quote=FALSE, na="",
+  write.table(
+    (if (!emulateStata) joinedOutput$EUROMOMOrestricted else trimDigits(joinedOutput$EUROMOMOrestricted)),
+    row.names=FALSE, sep=",", quote=FALSE, na="",
     file=sprintf("%s/EUROMOMO%s-RESTRICTED-%s-%s-%s.txt", dirs$RESTRICTED, attr(joinedOutput, "VERSION"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
 
   write.dta(joinedOutput$MOMOtable, 

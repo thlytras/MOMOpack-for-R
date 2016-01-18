@@ -8,7 +8,7 @@
 # Function to prepare a MOMO input file
 
 makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
-	WStart, WEnd, Ysum, Wsum, Ydrop=2014, Wdrop=40,
+	WStart, WEnd, Ysum, Wsum,
 	colnames=c("DoD", "DoR", "age"), 
 	groups=NULL, models=rep("LINE_SIN", length(groups)), delayCorr=3, histPer=290,
 	compatibility.mode=FALSE) {
@@ -18,7 +18,7 @@ makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
   if (length(source)!=1 || length(country)!=1)
     stop("Arguments 'country' and 'source' should be of length one.")
   if (length(Ysum)!=1 || length(Wsum)!=1 || !is.numeric(Ysum) || !is.numeric(Wsum))
-    stop("Arguments 'Ysum', 'Wsum', 'Ydrop' and 'Wdrop' should be of length one.")
+    stop("Arguments 'Ysum' and 'Wsum' should be of length one.")
   if (is.vector(colnames) && is.numeric(colnames)) colnames <- names(df)[colnames]
   if (sum(colnames %in% names(df), na.rm=TRUE) < 3)
     stop("Did not find the provided column names in the supplied data.frame.")
@@ -70,10 +70,12 @@ makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
   attr(df, "WEnd") <- WEnd
   attr(df, "Ysum") <- Ysum
   attr(df, "Wsum") <- Wsum
-  attr(df, "Ydrop") <- Ydrop
-  attr(df, "Wdrop") <- Wdrop
   attr(df, "delayCorr") <- delayCorr
   attr(df, "histPer") <- histPer
+
+  # Automatically calculate Ydrop and Wdrop, based on DoA
+  attr(df, "Ydrop") <- (isoweek(DoA, "both_num") %/% 100) - (isoweek(DoA)<41)
+  attr(df, "Wdrop") <- 40
 
   # DEATHS
   # We generate nb = total number of death known in the series

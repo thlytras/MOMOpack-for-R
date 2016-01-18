@@ -88,11 +88,6 @@ opts$plotGraphs <- TRUE
 
 # ******** DO NOT MODIFY BELOW THIS LINE ********
 
-# Year and week after which data are not accunted for in the model 
-# This must not be changed currently thank you. 
-opts$Ydrop = 2014
-opts$Wdrop = 40
-
 # DEFINITION OF the GROUPS to be analyzed
 # other age group or any kind of group can be defined with the same method
 # and can overlap if needed.
@@ -150,8 +145,9 @@ cat("\nCreating MOMO input... ")
 t2 <- system.time({
   MOMOinput <- makeMOMOinput(MOMOfile, opts$DoA, opts$DoPR, hfile, 
     country=opts$country, source=opts$source, colnames=c("DoD", "DoR", "age"),
-    WStart=opts$WStart, WEnd=opts$WEnd, Ysum=opts$Ysum, Wsum=opts$Wsum, Ydrop=opts$Ydrop, Wdrop=opts$Wdrop,
-    groups=MOMOgroups, models=MOMOmodels, delayCorr=opts$back, histPer=opts$WWW, compatibility.mode=TRUE)
+    WStart=opts$WStart, WEnd=opts$WEnd, Ysum=opts$Ysum, Wsum=opts$Wsum,
+    groups=MOMOgroups, models=MOMOmodels, delayCorr=opts$back, histPer=opts$WWW, 
+    compatibility.mode=TRUE)
 })
 cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))
 

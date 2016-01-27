@@ -133,7 +133,7 @@ cat("DONE\n")
 cat("Reading in input files... ")
 t1 <- system.time({
   MOMOfile <- read.dta(paste(opts$INPUTDIR, opts$MFILE, sep="/"))
-  MOMOfile <- MOMOfile[,c("DoD", "DoR", "age")]
+  #MOMOfile <- MOMOfile[,c("DoD", "DoR", "age")]
   MOMOfile$DoD <- as.Date(MOMOfile$DoD, origin="1960-1-1")
   MOMOfile$DoR <- as.Date(MOMOfile$DoR, origin="1960-1-1")
   hfile <- read.dta(paste(opts$INPUTDIR, opts$HFILE, sep="/"))[,c("date", "closed")]

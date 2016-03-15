@@ -99,6 +99,10 @@ aggregateMOMO <- function(mi, group) {
   # We clean the data set
   aggr5$nb[is.na(aggr5$nb)] <- 0
   aggr5$nb2[is.na(aggr5$nb2)] <- 0
+  for(i in grep("^WR",names(aggr5))){
+    aggr5[is.na(aggr5[,i]),i] <- 0
+  }
+  
   aggr5[aggr5$wk>=(attr(aggr5, "WEEK") - attr(mi, "histPer")) & aggr5$wk<=(attr(aggr5, "WEEK")+1), ]
 
 }

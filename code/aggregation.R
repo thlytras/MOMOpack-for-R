@@ -4,7 +4,7 @@
 # created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. 
 # Port to R and further development by Theodore Lytras <thlytras@gmail.com>
 
-aggregateMOMO <- function(mi, group) {
+aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
   # We make the AGGREGATION by week of death 
   aggr1 <- aggregate(mi[,c("nb", "nb2", colnames(mi)[grep("WR", colnames(mi), fixed=TRUE)])], by=mi[,c("YoDi","WoDi")], sum, na.rm=TRUE)
   aggr1 <- aggr1[order(aggr1$YoDi, aggr1$WoDi),]
@@ -99,8 +99,10 @@ aggregateMOMO <- function(mi, group) {
   # We clean the data set
   aggr5$nb[is.na(aggr5$nb)] <- 0
   aggr5$nb2[is.na(aggr5$nb2)] <- 0
-  for(i in grep("^WR",names(aggr5))){
-    aggr5[is.na(aggr5[,i]),i] <- 0
+  if (!compatibility.mode) {
+    for(i in grep("^WR",names(aggr5))){
+        aggr5[is.na(aggr5[,i]),i] <- 0
+    }
   }
   
   aggr5[aggr5$wk>=(attr(aggr5, "WEEK") - attr(mi, "histPer")) & aggr5$wk<=(attr(aggr5, "WEEK")+1), ]

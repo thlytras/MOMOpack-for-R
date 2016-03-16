@@ -154,7 +154,7 @@ cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))
 
 cat("Iterating over age groups:\n")
 MOMOoutput <- analyzeMOMO(MOMOinput, datesISO=opts$datesISO, useAUTOMN=opts$useAUTOMN, 
-	USEglm2=opts$USEglm2, verbose=TRUE)
+	USEglm2=opts$USEglm2, compatibility.mode=TRUE, verbose=TRUE)
 
 
 cat("Joining output... ")

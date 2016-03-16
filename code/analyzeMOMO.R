@@ -5,18 +5,18 @@
 # Port to R and further development by Theodore Lytras <thlytras@gmail.com>
 
 
-analyzeMOMO <- function(mi, version="v4-3", datesISO=TRUE, useAUTOMN=FALSE, USEglm2=TRUE, zvalue=1.96, verbose=TRUE) {
+analyzeMOMO <- function(mi, version="v4-3", datesISO=TRUE, useAUTOMN=FALSE, USEglm2=TRUE, zvalue=1.96, compatibility.mode=FALSE, verbose=TRUE) {
   if (!("MOMOinput" %in% class(mi)))
     stop("Argument 'mi' should have class \"MOMOinput\".")
   return(lapply(attr(mi, "groups"), function(x) {
     if (verbose) cat(sprintf("- Iterating over group %s... ", x))
-    ret <- analyzeMOMOgroup(mi, x, version, datesISO, useAUTOMN, USEglm2, zvalue)
+    ret <- analyzeMOMOgroup(mi, x, version, datesISO, useAUTOMN, USEglm2, zvalue, compatibility.mode)
     if (verbose) cat("DONE\n")
     ret
   }))
 }
 
-analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN=FALSE, USEglm2=TRUE, zvalue=1.96) {
+analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN=FALSE, USEglm2=TRUE, zvalue=1.96, compatibility.mode=FALSE) {
   if (!("MOMOinput" %in% class(mi)))
     stop("Argument 'mi' should have class \"MOMOinput\".")
   if (sum(mi[,sprintf("GRP%s", group)], na.rm=TRUE) == nrow(mi)) {
@@ -24,7 +24,7 @@ analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN
   } else {
     groupfile <- mi[mi[,sprintf("GRP%s", group)] & !is.na(mi[,sprintf("GRP%s", group)]),]
   }
-  aggr <- aggregateMOMO(groupfile, group)
+  aggr <- aggregateMOMO(groupfile, group, compatibility.mode)
   aggr_fullDelay <- delayMOMO(aggr, zvalue)
   aggr_delay <- trimDelayMOMO(aggr_fullDelay)
   final <- excessMOMO(aggr_delay, version, useAUTOMN, USEglm2, zvalue)

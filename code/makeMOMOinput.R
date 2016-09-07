@@ -74,8 +74,8 @@ makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
   attr(df, "histPer") <- histPer
 
   # Automatically calculate Ydrop and Wdrop, based on DoA
-  attr(df, "Ydrop") <- (isoweek(DoA, "both_num") %/% 100) - (isoweek(DoA)<41)
-  attr(df, "Wdrop") <- 40
+  attr(df, "Ydrop") <- (isoweek(DoA, "both_num") %/% 100) - (isoweek(DoA)<=21)
+  attr(df, "Wdrop") <- ifelse((isoweek(DoA, "both_num") %% 100)>21 & (isoweek(DoA, "both_num") %% 100)<40, 21, 40)
 
   # DEATHS
   # We generate nb = total number of death known in the series

@@ -77,10 +77,10 @@ opts$Wsum = 34
 opts$USEglm2 <- TRUE
 
 # Keep using the column name "Automn" (instead of "Autumn") as in Stata MOMOpack ?
-opts$useAUTOMN <- FALSE
+opts$useAUTOMN <- TRUE
 
 # When saving dates in text files, use ISO format (standard in R) instead of the Stata "%d" format ?
-opts$datesISO <- TRUE
+opts$datesISO <- FALSE
 
 # Setting this to FALSE suppressess the plotting of the various graphs (and saves time)
 opts$plotGraphs <- TRUE

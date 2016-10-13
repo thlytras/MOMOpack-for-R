@@ -104,8 +104,8 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
 
     # We drop the variables UPI if they are not crossed by the data
     if (Z>2 && sum(aggr$nbc > aggr[[paste("UPIb",Z,sep="")]], na.rm=TRUE)==0) {
-      aggr[[paste("UPIb",Z,sep="")]] <- NULL
-      break
+      #aggr[[paste("UPIb",Z,sep="")]] <- NULL ## RICHARD CHANGE
+      #break
     }
   }
 

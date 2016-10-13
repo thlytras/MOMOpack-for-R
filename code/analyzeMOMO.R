@@ -28,6 +28,17 @@ analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN
   aggr_fullDelay <- delayMOMO(aggr, zvalue)
   aggr_delay <- trimDelayMOMO(aggr_fullDelay)
   final <- excessMOMO(aggr_delay, version, useAUTOMN, USEglm2, zvalue)
+  
+  toSave <- final
+  
+  for(Z in seq(4,20,2)) {
+    # We drop the variables UPI if they are not crossed by the data
+    if (sum(final$nbc > final[[paste("UPIb",Z,sep="")]], na.rm=TRUE)==0) {
+      final[[paste("UPIb",Z,sep="")]] <- NULL ## RICHARD CHANGE
+      #break
+    }
+  }
+  
   table <- tableMOMO(final)
   EUROMOMO <- EUROMOMOoutput(final, useAUTOMN, datesISO)
   periods <- list(
@@ -41,7 +52,8 @@ analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN
   return(list(
     aggregate = aggr, aggregate_fullDelay = aggr_fullDelay, aggregate_delay = aggr_delay, 
     finalDataset = final, MOMOtable=table, EUROMOMOcomplete = EUROMOMO$COMPLETE, 
-    EUROMOMOrestricted = EUROMOMO$RESTRICTED, periods = periods))
+    EUROMOMOrestricted = EUROMOMO$RESTRICTED, periods = periods,
+    toSave=toSave))
 
 }
 

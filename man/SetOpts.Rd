@@ -2,7 +2,7 @@
 % Please edit documentation in R/aa_MOMOmaster_set_and_run.R
 \name{SetOpts}
 \alias{SetOpts}
-\title{Placeholder list for all the following options}
+\title{Set all the options for MoMo.}
 \usage{
 SetOpts(DoA = as.Date("2015-8-10"), DoPR = as.Date("2008-1-1"),
   WStart = 1, WEnd = 52, country = "Greece", source = "UoP",
@@ -12,9 +12,9 @@ SetOpts(DoA = as.Date("2015-8-10"), DoPR = as.Date("2008-1-1"),
   datesISO = FALSE, plotGraphs = TRUE)
 }
 \arguments{
-\item{DoA}{DATE OF AGGREGATION (see specifications, the only information to change weekly). Provided in ISO format, i.e. YYYY-MM-DD.}
+\item{DoA}{Date of aggregation (see specifications, the only information to change weekly). Provided in ISO format, i.e. YYYY-MM-DD.}
 
-\item{DoPR}{DATE OF START of a regular MOMO registration (see specifications). Provided in ISO format, i.e. YYYY-MM-DD.}
+\item{DoPR}{Date of start of a regular MOMO registration (see specifications). Provided in ISO format, i.e. YYYY-MM-DD.}
 
 \item{WStart}{Week of cumulative excess start. e.g. "influenza season" as define by EISS will be defined as WStart = 40, WEnd= 20. e.g. summer could be defined as WStart = 26, WEnd= 40}
 
@@ -49,5 +49,5 @@ SetOpts(DoA = as.Date("2015-8-10"), DoPR = as.Date("2008-1-1"),
 \item{plotGraphs}{Setting this to FALSE suppressess the plotting of the various graphs (and saves time)}
 }
 \description{
-Placeholder list for all the following options
+It is usual to run \code{\link{RunMoMo}} after these options have been set.
 }

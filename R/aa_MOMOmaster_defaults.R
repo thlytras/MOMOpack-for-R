@@ -8,6 +8,8 @@
 #' @export opts
 opts <- new.env(parent = emptyenv())
 
+opts$setByUser <- FALSE
+
 # CHANGE THE INFORMATION BETWEEN BRACKETS
 # ACCORDING TO YOUR NEEDS and your working directories
 

@@ -1,6 +1,8 @@
-#' Set all the following options
-#' @param DoA DATE OF AGGREGATION (see specifications, the only information to change weekly). Provided in ISO format, i.e. YYYY-MM-DD.
-#' @param DoPR DATE OF START of a regular MOMO registration (see specifications). Provided in ISO format, i.e. YYYY-MM-DD.
+#' Set all the options for MoMo.
+#'
+#' It is usual to run \code{\link{RunMoMo}} after these options have been set.
+#' @param DoA Date of aggregation (see specifications, the only information to change weekly). Provided in ISO format, i.e. YYYY-MM-DD.
+#' @param DoPR Date of start of a regular MOMO registration (see specifications). Provided in ISO format, i.e. YYYY-MM-DD.
 #' @param WStart Week of cumulative excess start. e.g. "influenza season" as define by EISS will be defined as WStart = 40, WEnd= 20. e.g. summer could be defined as WStart = 26, WEnd= 40
 #' @param WEnd Week of cumulative excess end e.g. "influenza season" as define by EISS will be defined as WStart = 40, WEnd= 20.
 #' @param country Country name
@@ -38,6 +40,8 @@ SetOpts <- function(
   datesISO = FALSE,
   plotGraphs = TRUE){
 
+  opts$setByUser <- TRUE
+
   opts$DoA <- DoA
   opts$DoPR <- DoPR
   opts$WStart <- WStart
@@ -58,13 +62,41 @@ SetOpts <- function(
   opts$plotGraphs <- plotGraphs
 }
 
-#' Runs the MoMo code
+#' Runs the MoMo code.
+#'
+#' The master start button for running all of the MoMo code. \code{\link{SetOpts}} must be run first.
 #' @import foreign
 #' @import data.table
 #' @import stringr
 #' @export RunMoMo
+#' @examples
+#' SetOpts(
+#'   DoA=as.Date("2013-12-31"),
+#'   DoPR=as.Date("2008-1-1"),
+#'   WStart=1,
+#'   WEnd=52,
+#'   country = "Denmark",
+#'   source = "SSI",
+#'   MFILE = "DoD_DoR.txt",
+#'   HFILE = "holidays.txt",
+#'   INPUTDIR = system.file("testdata",package="momo"),
+#'   WDIR = tempdir(),
+#'   back = 3,
+#'   WWW = 290,
+#'   Ysum = 2013,
+#'   Wsum = 40,
+#'   USEglm2 = TRUE,
+#'   useAUTOMN = TRUE,
+#'   datesISO = FALSE,
+#'   plotGraphs = FALSE
+#' )
+#'
+#' RunMoMo()
 RunMoMo <- function(){
 
+  if(!opts$setByUser){
+    stop("You have not set the options in function momo::SetOpts. You need to do this before using momo::RunMoMo")
+  }
   # Analysis
   # National level
   # by population subgroup

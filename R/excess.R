@@ -4,7 +4,7 @@
 # created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO.
 # Ported into R by Theodore Lytras <thlytras@gmail.com>
 
-
+#' @import glm2
 excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
   temp <- cbind(aggr, lspline(aggr$wk, nknots=2, names=c("Swk1", "Swk2", "Swk3")))
   aggr <- transferMOMOattributes(temp, aggr)
@@ -61,7 +61,7 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
 
   # Use glm2() if package glm2 is available, in order to improve convergence properties
   # (This is equivalent to the option irls in stata glm)
-  glmToUse <- c("glm", "glm2")[(USEglm2 && suppressWarnings(require(glm2, quietly=TRUE)))+1]
+  glmToUse <- c("glm", "glm2")[(USEglm2)+1]
 
   if (attr(aggr,"model")=="LINE") {
     m1 <- do.call(glmToUse, list(nbc ~ wk, data=subset(aggr, CONDmodel==1), family=poisson))

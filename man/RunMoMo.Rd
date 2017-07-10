@@ -2,10 +2,10 @@
 % Please edit documentation in R/aa_MOMOmaster_set_and_run.R
 \name{RunMoMo}
 \alias{RunMoMo}
-\title{hello}
+\title{Runs the MoMo code}
 \usage{
 RunMoMo()
 }
 \description{
-hello
+Runs the MoMo code
 }

@@ -69,7 +69,6 @@ joinMOMOoutput <- function(output) {
 #' @import utils
 #' @import foreign
 writeMOMOoutput <- function(joinedOutput, dirs, output=NULL, emulateStata=TRUE) {
-  require(foreign)
 
   trimDigits <- function(x) {
     for (i in 1:ncol(x)) {

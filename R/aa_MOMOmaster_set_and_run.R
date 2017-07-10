@@ -1,10 +1,22 @@
-# MOMOpack for R version 0.2
-
-# Originally MOMOpack V 4.3 for Stata,
-# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO.
-# Port to R and further development by Theodore Lytras <thlytras@gmail.com>
-
-#' Placeholder list for all the following options
+#' Set all the following options
+#' @param DoA DATE OF AGGREGATION (see specifications, the only information to change weekly). Provided in ISO format, i.e. YYYY-MM-DD.
+#' @param DoPR DATE OF START of a regular MOMO registration (see specifications). Provided in ISO format, i.e. YYYY-MM-DD.
+#' @param WStart Week of cumulative excess start. e.g. "influenza season" as define by EISS will be defined as WStart = 40, WEnd= 20. e.g. summer could be defined as WStart = 26, WEnd= 40
+#' @param WEnd Week of cumulative excess end e.g. "influenza season" as define by EISS will be defined as WStart = 40, WEnd= 20.
+#' @param country Country name
+#' @param source Source of data
+#' @param MFILE Name of your mortality file, either stata format (.dta) or text file (.txt)
+#' @param HFILE Name of file containing bank Holidays (see specifications), either stata format (.dta) or text file (.txt)
+#' @param INPUTDIR Input directory (where MFILE and HFILE can be found)
+#' @param WDIR Output directory (all output will go here)
+#' @param back The number of weeks to remove for modeling delay = the part of the series that require delay correction (see specifications).
+#' @param WWW Length of retrospective historical study period in weeks
+#' @param Ysum START OF CUSUM CHART: Week for CUSUM to be set to 0
+#' @param Wsum START OF CUSUM CHART: Week for CUSUM to be set to 0
+#' @param USEglm2 Use glm2() in order to improve convergence properties
+#' @param useAUTOMN Keep using the column name "Automn" (instead of "Autumn") as in Stata MOMOpack
+#' @param datesISO When saving dates in text files, use ISO format (standard in R) instead of the Stata "\%d" format
+#' @param plotGraphs Setting this to FALSE suppressess the plotting of the various graphs (and saves time)
 #' @export SetOpts
 SetOpts <- function(
   DoA=as.Date("2015-8-10"),
@@ -46,7 +58,7 @@ SetOpts <- function(
   opts$plotGraphs <- plotGraphs
 }
 
-#' hello
+#' Runs the MoMo code
 #' @import foreign
 #' @import data.table
 #' @import stringr
@@ -64,7 +76,7 @@ RunMoMo <- function(){
   # Load the MOMO functions and any required packages
   cat("Loading MOMO functions and required packages... ")
   #source(sprintf("%s/loadMOMOpack.R", opts$CODEDIR))
-  library(foreign, quietly=TRUE)
+
   cat("DONE\n")
 
   # Read in the input files in Stata format

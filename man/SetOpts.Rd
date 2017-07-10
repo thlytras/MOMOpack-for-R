@@ -11,6 +11,43 @@ SetOpts(DoA = as.Date("2015-8-10"), DoPR = as.Date("2008-1-1"),
   Ysum = 2009, Wsum = 34, USEglm2 = TRUE, useAUTOMN = TRUE,
   datesISO = FALSE, plotGraphs = TRUE)
 }
+\arguments{
+\item{DoA}{DATE OF AGGREGATION (see specifications, the only information to change weekly). Provided in ISO format, i.e. YYYY-MM-DD.}
+
+\item{DoPR}{DATE OF START of a regular MOMO registration (see specifications). Provided in ISO format, i.e. YYYY-MM-DD.}
+
+\item{WStart}{Week of cumulative excess start. e.g. "influenza season" as define by EISS will be defined as WStart = 40, WEnd= 20. e.g. summer could be defined as WStart = 26, WEnd= 40}
+
+\item{WEnd}{Week of cumulative excess end e.g. "influenza season" as define by EISS will be defined as WStart = 40, WEnd= 20.}
+
+\item{country}{Country name}
+
+\item{source}{Source of data}
+
+\item{MFILE}{Name of your mortality file, either stata format (.dta) or text file (.txt)}
+
+\item{HFILE}{Name of file containing bank Holidays (see specifications), either stata format (.dta) or text file (.txt)}
+
+\item{INPUTDIR}{Input directory (where MFILE and HFILE can be found)}
+
+\item{WDIR}{Output directory (all output will go here)}
+
+\item{back}{The number of weeks to remove for modeling delay = the part of the series that require delay correction (see specifications).}
+
+\item{WWW}{Length of retrospective historical study period in weeks}
+
+\item{Ysum}{START OF CUSUM CHART: Week for CUSUM to be set to 0}
+
+\item{Wsum}{START OF CUSUM CHART: Week for CUSUM to be set to 0}
+
+\item{USEglm2}{Use glm2() in order to improve convergence properties}
+
+\item{useAUTOMN}{Keep using the column name "Automn" (instead of "Autumn") as in Stata MOMOpack}
+
+\item{datesISO}{When saving dates in text files, use ISO format (standard in R) instead of the Stata "\%d" format}
+
+\item{plotGraphs}{Setting this to FALSE suppressess the plotting of the various graphs (and saves time)}
+}
 \description{
 Placeholder list for all the following options
 }

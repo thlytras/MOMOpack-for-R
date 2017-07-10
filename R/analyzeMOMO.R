@@ -1,9 +1,8 @@
 # MOMOpack for R
 
-# Originally MOMOpack V 4.3 for Stata, 
-# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. 
+# Originally MOMOpack V 4.3 for Stata,
+# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO.
 # Port to R and further development by Theodore Lytras <thlytras@gmail.com>
-
 
 analyzeMOMO <- function(mi, version="v4-3", datesISO=TRUE, useAUTOMN=FALSE, USEglm2=TRUE, zvalue=1.96, compatibility.mode=FALSE, verbose=TRUE) {
   if (!("MOMOinput" %in% class(mi)))
@@ -28,9 +27,9 @@ analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN
   aggr_fullDelay <- delayMOMO(aggr, zvalue)
   aggr_delay <- trimDelayMOMO(aggr_fullDelay)
   final <- excessMOMO(aggr_delay, version, useAUTOMN, USEglm2, zvalue)
-  
+
   toSave <- final
-  
+
   for(Z in seq(4,20,2)) {
     # We drop the variables UPI if they are not crossed by the data
     if (sum(final$nbc > final[[paste("UPIb",Z,sep="")]], na.rm=TRUE)==0) {
@@ -38,7 +37,7 @@ analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN
       #break
     }
   }
-  
+
   table <- tableMOMO(final)
   EUROMOMO <- EUROMOMOoutput(final, useAUTOMN, datesISO)
   periods <- list(
@@ -50,8 +49,8 @@ analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN
   attr(periods, "WStart") <- attr(mi, "WStart")
   attr(periods, "WEnd") <- attr(mi, "WEnd")
   return(list(
-    aggregate = aggr, aggregate_fullDelay = aggr_fullDelay, aggregate_delay = aggr_delay, 
-    finalDataset = final, MOMOtable=table, EUROMOMOcomplete = EUROMOMO$COMPLETE, 
+    aggregate = aggr, aggregate_fullDelay = aggr_fullDelay, aggregate_delay = aggr_delay,
+    finalDataset = final, MOMOtable=table, EUROMOMOcomplete = EUROMOMO$COMPLETE,
     EUROMOMOrestricted = EUROMOMO$RESTRICTED, periods = periods,
     toSave=toSave))
 

@@ -32,5 +32,5 @@ SetOpts(
     datesISO = FALSE,
     plotGraphs = TRUE)
 
-  RunMoMo()
+RunMoMo()
 ```

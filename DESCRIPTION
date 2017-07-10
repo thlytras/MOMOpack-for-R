@@ -1,11 +1,22 @@
 Package: momo
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Title: MOMOpack for R
+Version: 0.2.0
+Authors@R: c(
+  person("Bernadette", "Gergonne", role = c("aut")),
+  person("Theodore", "Lytras", email = "thlytras@gmail.com", role = c("aut", "trl")),
+  person("Richard", "White", email = "w@rwhite.no", role = c("aut", "cre")))
+Description: Originally MOMOpack V 4.3 for Stata, created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. Translated into R by Theodore Lytras. Converted into R package by Richard White.
 Depends: R (>= 3.3.3)
 Imports:
-  data.table
+  data.table,
+  foreign,
+  stringr,
+  stats,
+  grDevices,
+  graphics,
+  utils
+Suggests:
+  testthat
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

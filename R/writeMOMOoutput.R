@@ -1,7 +1,7 @@
 # MOMOpack for R
 
-# Originally MOMOpack V 4.3 for Stata, 
-# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. 
+# Originally MOMOpack V 4.3 for Stata,
+# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO.
 # Ported into R by Theodore Lytras <thlytras@gmail.com>
 
 
@@ -12,9 +12,9 @@
 createMOMOdirectories <- function(output, wdir) {
   VERSION <- unique(output[[1]]$finalDataset$Version)
 
-  # GLOBAL: WEEK NUMBER to STUDY according to the date of aggregation 
-  # = complete ISO week, (From monday to Sunday) PRECEDING the date of aggregation 
-  # for week from Monday to Sunday and aggregation from Monday the week after. 
+  # GLOBAL: WEEK NUMBER to STUDY according to the date of aggregation
+  # = complete ISO week, (From monday to Sunday) PRECEDING the date of aggregation
+  # for week from Monday to Sunday and aggregation from Monday the week after.
   WOSI <- attr(output[[1]]$finalDataset, "WOSI")
   YOSI <- attr(output[[1]]$finalDataset, "YOSI")
 
@@ -66,10 +66,11 @@ joinMOMOoutput <- function(output) {
 }
 
 
-
+#' @import utils
+#' @import foreign
 writeMOMOoutput <- function(joinedOutput, dirs, output=NULL, emulateStata=TRUE) {
   require(foreign)
-  
+
   trimDigits <- function(x) {
     for (i in 1:ncol(x)) {
         if (class(x[,i])=="numeric") {
@@ -80,7 +81,7 @@ writeMOMOoutput <- function(joinedOutput, dirs, output=NULL, emulateStata=TRUE) 
   }
 
   write.table(
-    (if (!emulateStata) joinedOutput$EUROMOMOcomplete else trimDigits(joinedOutput$EUROMOMOcomplete)), 
+    (if (!emulateStata) joinedOutput$EUROMOMOcomplete else trimDigits(joinedOutput$EUROMOMOcomplete)),
     row.names=FALSE, sep=",", quote=FALSE, na="",
     file=sprintf("%s/EUROMOMO%s-COMPLETE-%s-%s-%s.txt", dirs$COMPLETE, attr(joinedOutput, "VERSION"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
   write.table(
@@ -88,43 +89,43 @@ writeMOMOoutput <- function(joinedOutput, dirs, output=NULL, emulateStata=TRUE) 
     row.names=FALSE, sep=",", quote=FALSE, na="",
     file=sprintf("%s/EUROMOMO%s-RESTRICTED-%s-%s-%s.txt", dirs$RESTRICTED, attr(joinedOutput, "VERSION"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
 
-  write.dta(joinedOutput$MOMOtable, 
+  write.dta(joinedOutput$MOMOtable,
     sprintf("%s/TABLE-MOMO%s-%s-%s-%s.dta", dirs$FINAL, attr(joinedOutput, "VERSION"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
   write.table(joinedOutput$MOMOtable, row.names=FALSE, sep="\t", na="",
     file=sprintf("%s/TABLE-MOMO%s-%s-%s-%s.txt", dirs$FINAL, attr(joinedOutput, "VERSION"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
 
-  write.dta(joinedOutput$periods$cumChoice, 
+  write.dta(joinedOutput$periods$cumChoice,
     sprintf("%s/CUMULATIVE-Choice-w%s-w%s-MOMO-%s-%s-%s.dta", dirs$CUMULATIVE, attr(joinedOutput$periods, "WStart"), attr(joinedOutput$periods, "WEnd"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
   write.table(joinedOutput$periods$cumChoice, row.names=FALSE, sep="\t", na="",
     file=sprintf("%s/CUMULATIVE-Choice-w%s-w%s-MOMO-%s-%s-%s.txt", dirs$CUMULATIVE, attr(joinedOutput$periods, "WStart"), attr(joinedOutput$periods, "WEnd"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
 
-  write.dta(joinedOutput$periods$cumWinter, 
+  write.dta(joinedOutput$periods$cumWinter,
     sprintf("%s/CUMULATIVE-WINTER-w40-w20-MOMO-%s-%s-%s.dta", dirs$CUMULATIVE, attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
   write.table(joinedOutput$periods$cumWinter, row.names=FALSE, sep="\t", na="",
     file=sprintf("%s/CUMULATIVE-WINTER-w40-w20-MOMO-%s-%s-%s.txt", dirs$CUMULATIVE, attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
 
-  write.dta(joinedOutput$periods$cumSummer, 
+  write.dta(joinedOutput$periods$cumSummer,
     sprintf("%s/CUMULATIVE-SUMMER-w21-w39-MOMO-%s-%s-%s.dta", dirs$CUMULATIVE, attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
   write.table(joinedOutput$periods$cumSummer, row.names=FALSE, sep="\t", na="",
     file=sprintf("%s/CUMULATIVE-SUMMER-w21-w39-MOMO-%s-%s-%s.txt", dirs$CUMULATIVE, attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
 
-  write.dta(joinedOutput$periods$cumYear, 
+  write.dta(joinedOutput$periods$cumYear,
     sprintf("%s/CUMULATIVE-YEAR-w1-w53-MOMO-%s-%s-%s.dta", dirs$CUMULATIVE, attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
   write.table(joinedOutput$periods$cumYear, row.names=FALSE, sep="\t", na="",
     file=sprintf("%s/CUMULATIVE-YEAR-w1-w53-MOMO-%s-%s-%s.txt", dirs$CUMULATIVE, attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
 
-  write.dta(joinedOutput$periods$cumSeason, 
+  write.dta(joinedOutput$periods$cumSeason,
     sprintf("%s/CUMULATIVE-SEASON-w27-w26-MOMO-%s-%s-%s.dta", dirs$CUMULATIVE, attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
   write.table(joinedOutput$periods$cumSeason, row.names=FALSE, sep="\t", na="",
     file=sprintf("%s/CUMULATIVE-SEASON-w27-w26-MOMO-%s-%s-%s.txt", dirs$CUMULATIVE, attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
 
   if (!is.null(output)) {
     lapply(output, function(x){
-      write.dta(x$aggregate_fullDelay, sprintf("%s/delay-%s-%s-%s-%s.dta", dirs$CONTROL, 
+      write.dta(x$aggregate_fullDelay, sprintf("%s/delay-%s-%s-%s-%s.dta", dirs$CONTROL,
 	    attr(x$aggregate, "group"), attr(joinedOutput, "country"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
-      write.dta(x$finalDataset, sprintf("%s/DATA-MOMO%s-%s-%s-%s-%s.dta", dirs$FINAL, 
+      write.dta(x$finalDataset, sprintf("%s/DATA-MOMO%s-%s-%s-%s-%s.dta", dirs$FINAL,
 	    attr(joinedOutput, "VERSION"), attr(joinedOutput, "country"), attr(x$aggregate, "group"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
-      write.table(x$finalDataset, row.names=FALSE, sep="\t", na="", file=sprintf("%s/DATA-MOMO%s-%s-%s-%s-%s.txt", dirs$FINAL, 
+      write.table(x$finalDataset, row.names=FALSE, sep="\t", na="", file=sprintf("%s/DATA-MOMO%s-%s-%s-%s-%s.txt", dirs$FINAL,
 	    attr(joinedOutput, "VERSION"), attr(joinedOutput, "country"), attr(x$aggregate, "group"), attr(joinedOutput, "YOSI"), attr(joinedOutput, "WOSI")))
     })
   }

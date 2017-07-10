@@ -46,8 +46,10 @@ SetOpts <- function(
   opts$plotGraphs <- plotGraphs
 }
 
+#' hello
 #' @import foreign
 #' @import data.table
+#' @import stringr
 #' @export RunMoMo
 RunMoMo <- function(){
 

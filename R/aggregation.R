@@ -1,15 +1,15 @@
 # MOMOpack for R version
 
-# Originally MOMOpack V 4.3 for Stata, 
-# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. 
+# Originally MOMOpack V 4.3 for Stata,
+# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO.
 # Port to R and further development by Theodore Lytras <thlytras@gmail.com>
-
+#' @import stats
 aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
-  # We make the AGGREGATION by week of death 
+  # We make the AGGREGATION by week of death
   aggr1 <- aggregate(mi[,c("nb", "nb2", colnames(mi)[grep("WR", colnames(mi), fixed=TRUE)])], by=mi[,c("YoDi","WoDi")], sum, na.rm=TRUE)
   aggr1 <- aggr1[order(aggr1$YoDi, aggr1$WoDi),]
 
-  # Creation total number of registration 
+  # Creation total number of registration
   # for the numbre of registration, we make an aggregation the week of registration
   aggr2 <- aggregate(mi[,c("nb")], by=mi[,c("YoRi","WoRi")], sum, na.rm=TRUE)
   names(aggr2)[3] <- "nbr"
@@ -26,16 +26,16 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
   aggr4 <- merge(time.txt, aggr3, all=TRUE)
   aggr4 <- aggr4[order(aggr4$YoDi, aggr4$WoDi),]
 
-  
+
   hfile <- merge(data.frame(
-      date=seq.Date(from=min(attr(mi, "hfile")$date), 
-		to=as.Date(paste(format(max(attr(mi, "hfile")$date), "%Y"), 12, 31, sep="-")), 
+      date=seq.Date(from=min(attr(mi, "hfile")$date),
+		to=as.Date(paste(format(max(attr(mi, "hfile")$date), "%Y"), 12, 31, sep="-")),
 		by="day")
       ), attr(mi, "hfile"), all=TRUE)
 
-  # we generate the name of the day of the week 
+  # we generate the name of the day of the week
   # and set up days off for Saturday and Sunday
-  # This can be changed for Israel and Arabic countries. 
+  # This can be changed for Israel and Arabic countries.
   hfile$NoW = format(hfile$date, "%u") # That's inconsistent. On data1.do, the weekday was 1-7(Mon-Sun). Now it is 0-6(Sun-Sat)
   hfile$NoW[hfile$NoW==7] <- 0
 
@@ -49,7 +49,7 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
 
   hfile <- hfile[order(hfile$YoWi, hfile$WoWi),]
 
-  # for each week we MUST compute the number of day off 
+  # for each week we MUST compute the number of day off
   # from monday=0 to the day of aggregation= $NOA
   hfile$closedA <- NA
   hfile$closedA[hfile$NoW>0 & hfile$NoW<=attr(mi, "NoA")] <- hfile$closed[hfile$NoW>0 & hfile$NoW<=attr(mi, "NoA")]
@@ -73,12 +73,12 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
   aggr5 <- aggr5[order(aggr5$YoDi, aggr5$WoDi),]
   aggr5$wk <- 1:nrow(aggr5)
 
-  # WEEK NUMBER to STUDY according to the date of aggregation 
-  # = complete ISO week, (From monday to Sunday) PRECEDING the date of aggregation 
-  # for week from Monday to Sunday and aggregation from Monday the week after. 
+  # WEEK NUMBER to STUDY according to the date of aggregation
+  # = complete ISO week, (From monday to Sunday) PRECEDING the date of aggregation
+  # for week from Monday to Sunday and aggregation from Monday the week after.
   attr(aggr5, "WEEK") <- which(aggr5$YoDi==attr(mi, "YOAI") & aggr5$WoDi==attr(mi, "WOAI")) - 1
 
-  # GLOBAL: Week number, earlier limit for studying delay 
+  # GLOBAL: Week number, earlier limit for studying delay
   # accroding to the date of "perfect registration" PR
   attr(aggr5, "PRWEEK") <- which(aggr5$YoDi==attr(mi, "YOPRI") & aggr5$WoDi==attr(mi, "WOPRI"))
 
@@ -104,7 +104,7 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
         aggr5[is.na(aggr5[,i]),i] <- 0
     }
   }
-  
+
   aggr5[aggr5$wk>=(attr(aggr5, "WEEK") - attr(mi, "histPer")) & aggr5$wk<=(attr(aggr5, "WEEK")+1), ]
 
 }

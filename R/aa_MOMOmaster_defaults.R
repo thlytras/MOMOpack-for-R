@@ -97,7 +97,7 @@ opts$plotGraphs <- TRUE
 # other age group or any kind of group can be defined with the same method
 # and can overlap if needed.
 
-MOMOgroups <- list(
+opts$MOMOgroups <- list(
   "0to4" =  "age >= 0 & age <=4",
   "5to14" = "age >= 5 & age <=14",
   "15to64" = "age >= 15 & age <=64",
@@ -109,7 +109,7 @@ MOMOgroups <- list(
 # and the corresponding values (model to use for each group)
 # should be one of "LINE", "SPLINE", "LINE_SIN", "SPLINE_SIN"
 
-MOMOmodels <- c(
+opts$MOMOmodels <- c(
   "0to4" = "LINE",
   "5to14" = "LINE",
   "15to64" = "LINE_SIN",

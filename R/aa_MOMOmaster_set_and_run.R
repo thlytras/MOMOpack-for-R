@@ -19,6 +19,8 @@
 #' @param useAUTOMN Keep using the column name "Automn" (instead of "Autumn") as in Stata MOMOpack
 #' @param datesISO When saving dates in text files, use ISO format (standard in R) instead of the Stata "\%d" format
 #' @param plotGraphs Setting this to FALSE suppressess the plotting of the various graphs (and saves time)
+#' @param MOMOgroups Definition of the groups to be analyzed
+#' @param MOMOmodels Names in the following vector should correspond to the MOMOgroups and the corresponding values (model to use for each group) should be one of "LINE", "SPLINE", "LINE_SIN", "SPLINE_SIN"
 #' @export SetOpts
 SetOpts <- function(
   DoA=as.Date("2015-8-10"),
@@ -38,7 +40,21 @@ SetOpts <- function(
   USEglm2 = TRUE,
   useAUTOMN = TRUE,
   datesISO = FALSE,
-  plotGraphs = TRUE){
+  plotGraphs = TRUE,
+  MOMOgroups = list(
+    "0to4" =  "age >= 0 & age <=4",
+    "5to14" = "age >= 5 & age <=14",
+    "15to64" = "age >= 15 & age <=64",
+    "65P" = "age >= 65 | is.na(age)",
+    "Total" = "age >= 0 | is.na(age)"
+  ),
+  MOMOmodels = c(
+    "0to4" = "LINE",
+    "5to14" = "LINE",
+    "15to64" = "LINE_SIN",
+    "65P" = "LINE_SIN",
+    "Total" = "LINE_SIN"
+  )){
 
   opts$setByUser <- TRUE
 
@@ -60,6 +76,8 @@ SetOpts <- function(
   opts$useAUTOMN <- useAUTOMN
   opts$datesISO <- datesISO
   opts$plotGraphs <- plotGraphs
+  opts$MOMOgroups <- MOMOgroups
+  opts$MOMOmodels <- MOMOmodels
 }
 
 #' Runs the MoMo code.
@@ -145,7 +163,7 @@ RunMoMo <- function(){
     MOMOinput <- makeMOMOinput(MOMOfile, opts$DoA, opts$DoPR, hfile,
       country=opts$country, source=opts$source, colnames=c("DoD", "DoR", "age"),
       WStart=opts$WStart, WEnd=opts$WEnd, Ysum=opts$Ysum, Wsum=opts$Wsum,
-      groups=MOMOgroups, models=MOMOmodels, delayCorr=opts$back, histPer=opts$WWW,
+      groups=opts$MOMOgroups, models=opts$MOMOmodels, delayCorr=opts$back, histPer=opts$WWW,
       compatibility.mode=TRUE)
   })
   cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))

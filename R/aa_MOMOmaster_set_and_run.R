@@ -155,6 +155,11 @@ RunMoMo <- function(){
   MOMOoutput <- analyzeMOMO(MOMOinput, datesISO=opts$datesISO, useAUTOMN=opts$useAUTOMN,
   	USEglm2=opts$USEglm2, compatibility.mode=TRUE, verbose=TRUE)
 
+  dataExport$toSave <- vector("list",length=length(MOMOoutput))
+  for(j in 1:length(dataExport$toSave)){
+    dataExport$toSave[[j]] <- MOMOoutput[[j]]$toSave
+    MOMOoutput[[j]]$toSave <- NULL
+  }
 
   cat("Joining output... ")
   MOMOjoinedOutput <- joinMOMOoutput(MOMOoutput)

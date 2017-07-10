@@ -4,6 +4,10 @@
 # created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO.
 # Port to R and further development by Theodore Lytras <thlytras@gmail.com>
 
+#' Data to be exported
+#' @export dataExport
+dataExport <- new.env(parent = emptyenv())
+
 #' Placeholder list for all the following options
 #' @export opts
 opts <- new.env(parent = emptyenv())

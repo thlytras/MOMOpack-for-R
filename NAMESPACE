@@ -2,6 +2,7 @@
 
 export(RunMoMo)
 export(SetOpts)
+export(dataExport)
 export(opts)
 import(data.table)
 import(foreign)

@@ -21,6 +21,7 @@
 #' @param plotGraphs Setting this to FALSE suppressess the plotting of the various graphs (and saves time)
 #' @param MOMOgroups Definition of the groups to be analyzed
 #' @param MOMOmodels Names in the following vector should correspond to the MOMOgroups and the corresponding values (model to use for each group) should be one of "LINE", "SPLINE", "LINE_SIN", "SPLINE_SIN"
+#' @param verbose Printing out information
 #' @export SetOpts
 SetOpts <- function(
   DoA=as.Date("2015-8-10"),
@@ -54,7 +55,8 @@ SetOpts <- function(
     "15to64" = "LINE_SIN",
     "65P" = "LINE_SIN",
     "Total" = "LINE_SIN"
-  )){
+  ),
+  verbose=TRUE){
 
   opts$setByUser <- TRUE
 
@@ -78,6 +80,7 @@ SetOpts <- function(
   opts$plotGraphs <- plotGraphs
   opts$MOMOgroups <- MOMOgroups
   opts$MOMOmodels <- MOMOmodels
+  opts$verbose <- verbose
 }
 
 #' Runs the MoMo code.
@@ -119,19 +122,19 @@ RunMoMo <- function(){
   # National level
   # by population subgroup
 
-  cat("Welcome to MOMOpack for R.\n\n")
+  if(opts$verbose) cat("Welcome to MOMOpack for R.\n\n")
 
   t0 <- system.time({
 
-  # Load the MOMO functions and any required packages
-  cat("Loading MOMO functions and required packages... ")
-  #source(sprintf("%s/loadMOMOpack.R", opts$CODEDIR))
+    # Load the MOMO functions and any required packages
+    if(opts$verbose) cat("Loading MOMO functions and required packages... ")
+    #source(sprintf("%s/loadMOMOpack.R", opts$CODEDIR))
 
-  cat("DONE\n")
+    if(opts$verbose) cat("DONE\n")
 
   # Read in the input files in Stata format
   # (This section can be modified appropriately if input file is in another format)
-  cat("Reading in input files... ")
+    if(opts$verbose) cat("Reading in input files... ")
   t1 <- system.time({
     if(stringr::str_detect(opts$MFILE,".dta$")){
       MOMOfile <- read.dta(paste(opts$INPUTDIR, opts$MFILE, sep="/"))
@@ -155,10 +158,10 @@ RunMoMo <- function(){
     hfile$date <- as.Date(hfile$date)
 
   })
-  cat(sprintf("DONE (in %s seconds)\n", round(t1[3], 2)))
+  if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t1[3], 2)))
 
 
-  cat("\nCreating MOMO input... ")
+  if(opts$verbose) cat("\nCreating MOMO input... ")
   t2 <- system.time({
     MOMOinput <- makeMOMOinput(MOMOfile, opts$DoA, opts$DoPR, hfile,
       country=opts$country, source=opts$source, colnames=c("DoD", "DoR", "age"),
@@ -166,7 +169,7 @@ RunMoMo <- function(){
       groups=opts$MOMOgroups, models=opts$MOMOmodels, delayCorr=opts$back, histPer=opts$WWW,
       compatibility.mode=TRUE)
   })
-  cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))
+  if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))
 
 
   cat("Iterating over age groups:\n")
@@ -179,30 +182,34 @@ RunMoMo <- function(){
     MOMOoutput[[j]]$toSave <- NULL
   }
 
-  cat("Joining output... ")
+  if(opts$verbose) cat("Joining output... ")
   MOMOjoinedOutput <- joinMOMOoutput(MOMOoutput)
-  cat("DONE\n")
+  if(opts$verbose) cat("DONE\n")
 
 
-  cat("Creating MOMO directories and writing all output to disk... ")
+  if(opts$verbose) cat("Creating MOMO directories and writing all output to disk... ")
   MOMOdirs <- createMOMOdirectories(MOMOoutput, opts$WDIR)
   writeMOMOoutput(MOMOjoinedOutput, MOMOdirs, MOMOoutput)
-  cat("DONE\n")
+  if(opts$verbose) cat("DONE\n")
 
 
   if (opts$plotGraphs) {
     t3 <- system.time({
-      cat("\nPlotting graphs:")
-      cat(" (Control graphs)");controlGraphsMOMO(MOMOoutput, MOMOdirs)
-      cat(" (Excess graphs)");excessGraphsMOMO(MOMOoutput, MOMOdirs)
-      cat(" (Fit graphs)");fitGraphsMOMO(MOMOoutput, MOMOdirs)
-      cat(" (CUSUM graphs)");CUSUMgraphsMOMO(MOMOoutput, MOMOdirs)
+      if(opts$verbose) cat("\nPlotting graphs:")
+      if(opts$verbose) cat(" (Control graphs)");
+      controlGraphsMOMO(MOMOoutput, MOMOdirs)
+      if(opts$verbose) cat(" (Excess graphs)");
+      excessGraphsMOMO(MOMOoutput, MOMOdirs)
+      if(opts$verbose) cat(" (Fit graphs)");
+      fitGraphsMOMO(MOMOoutput, MOMOdirs)
+      if(opts$verbose) cat(" (CUSUM graphs)");
+      CUSUMgraphsMOMO(MOMOoutput, MOMOdirs)
     })
-    cat(sprintf(" DONE \n\t(in %s seconds)\n", round(t3[3], 1)))
+    if(opts$verbose) cat(sprintf(" DONE \n\t(in %s seconds)\n", round(t3[3], 1)))
   }
 
 
   })
 
-  cat("\nCompleted the analysis in "); cat(round(t0[3],1)); cat(" seconds total.\n")
+  if(opts$verbose) cat("\nCompleted the analysis in "); cat(round(t0[3],1)); cat(" seconds total.\n")
 }

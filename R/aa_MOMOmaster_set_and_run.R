@@ -172,7 +172,7 @@ RunMoMo <- function(){
   if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))
 
 
-  cat("Iterating over age groups:\n")
+  if(opts$verbose) cat("Iterating over age groups:\n")
   MOMOoutput <- analyzeMOMO(MOMOinput, datesISO=opts$datesISO, useAUTOMN=opts$useAUTOMN,
   	USEglm2=opts$USEglm2, compatibility.mode=TRUE, verbose=TRUE)
 

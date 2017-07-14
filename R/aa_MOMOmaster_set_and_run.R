@@ -174,18 +174,18 @@ RunMoMo <- function(){
 
   if(opts$verbose) cat("Iterating over age groups:\n")
   MOMOoutput <- analyzeMOMO(MOMOinput, datesISO=opts$datesISO, useAUTOMN=opts$useAUTOMN,
-  	USEglm2=opts$USEglm2, compatibility.mode=TRUE, verbose=TRUE)
-
+  	USEglm2=opts$USEglm2, compatibility.mode=TRUE, verbose=opts$verbose)
+print(1)
   dataExport$toSave <- vector("list",length=length(MOMOoutput))
   for(j in 1:length(dataExport$toSave)){
     dataExport$toSave[[j]] <- MOMOoutput[[j]]$toSave
     MOMOoutput[[j]]$toSave <- NULL
   }
-
+print(2)
   if(opts$verbose) cat("Joining output... ")
   MOMOjoinedOutput <- joinMOMOoutput(MOMOoutput)
   if(opts$verbose) cat("DONE\n")
-
+print(3)
 
   if(opts$verbose) cat("Creating MOMO directories and writing all output to disk... ")
   MOMOdirs <- createMOMOdirectories(MOMOoutput, opts$WDIR)

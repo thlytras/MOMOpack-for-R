@@ -3,6 +3,8 @@ cache: packages
 r_packages:
 - covr
 - drat
+before_install:
+- bash make.sh
 after_success:
 - Rscript -e 'library(covr); codecov()'
 - test $TRAVIS_PULL_REQUEST == "false" && 

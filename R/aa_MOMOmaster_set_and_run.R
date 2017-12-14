@@ -7,9 +7,11 @@
 #' @param WEnd Week of cumulative excess end e.g. "influenza season" as define by EISS will be defined as WStart = 40, WEnd= 20.
 #' @param country Country name
 #' @param source Source of data
-#' @param MFILE Name of your mortality file, either stata format (.dta) or text file (.txt)
-#' @param HFILE Name of file containing bank Holidays (see specifications), either stata format (.dta) or text file (.txt)
+#' @param MFILE Name of your mortality file, either stata format (.dta) or text file (.txt) [you can use MDATA instead]
+#' @param HFILE Name of file containing bank Holidays (see specifications), either stata format (.dta) or text file (.txt) [you can use HDATA instead]
 #' @param INPUTDIR Input directory (where MFILE and HFILE can be found)
+#' @param MDATA A data.frame containing the data that would have been contained inside MFILE. MDATA takes priority over MFILE if both are specified.
+#' @param HDATA A data.frame containing the data that would have been contained inside HFILE. HDATA takes priority over HFILE if both are specified.
 #' @param WDIR Output directory (all output will go here)
 #' @param back The number of weeks to remove for modeling delay = the part of the series that require delay correction (see specifications).
 #' @param WWW Length of retrospective historical study period in weeks
@@ -33,6 +35,8 @@ SetOpts <- function(
   MFILE = "greece_m.dta",
   HFILE = "holidayfilegreece.dta",
   INPUTDIR = "./input",
+  MDATA = NULL,
+  HDATA = NULL,
   WDIR = "./output",
   back = 3,
   WWW = 290,
@@ -69,6 +73,8 @@ SetOpts <- function(
   opts$MFILE <- MFILE
   opts$HFILE <- HFILE
   opts$INPUTDIR <- INPUTDIR
+  opts$MDATA <- MDATA
+  opts$HDATA <- HDATA
   opts$WDIR <- WDIR
   opts$back <- back
   opts$WWW <- WWW
@@ -126,87 +132,92 @@ RunMoMo <- function(){
 
   t0 <- system.time({
 
-    # Load the MOMO functions and any required packages
-    if(opts$verbose) cat("Loading MOMO functions and required packages... ")
-    #source(sprintf("%s/loadMOMOpack.R", opts$CODEDIR))
+    # Loading in the data
+    if(!is.null(opts$MDATA) & !is.null(opts$HDATA)){
+      if(opts$verbose) cat("Using MDATA and HDATA as data sources\n")
 
-    if(opts$verbose) cat("DONE\n")
+      t1 <- system.time({
+        MOMOfile <- opts$MDATA
+        hfile <- opts$HDATA
+      })
 
-  # Read in the input files in Stata format
-  # (This section can be modified appropriately if input file is in another format)
-    if(opts$verbose) cat("Reading in input files... ")
-  t1 <- system.time({
-    if(stringr::str_detect(opts$MFILE,".dta$")){
-      MOMOfile <- read.dta(paste(opts$INPUTDIR, opts$MFILE, sep="/"))
-    } else if(stringr::str_detect(opts$MFILE,".txt$")){
-      MOMOfile <- as.data.frame(data.table::fread(paste(opts$INPUTDIR, opts$MFILE, sep="/")))
     } else {
-      stop("unknown file type for MFILE")
+      # Read in the input files in Stata format
+      # (This section can be modified appropriately if input file is in another format)
+      if(opts$verbose) cat("Reading in input files... ")
+      t1 <- system.time({
+        if(stringr::str_detect(opts$MFILE,".dta$")){
+          MOMOfile <- read.dta(paste(opts$INPUTDIR, opts$MFILE, sep="/"))
+        } else if(stringr::str_detect(opts$MFILE,".txt$")){
+          MOMOfile <- as.data.frame(data.table::fread(paste(opts$INPUTDIR, opts$MFILE, sep="/")))
+        } else {
+          stop("unknown file type for MFILE")
+        }
+        #MOMOfile <- MOMOfile[,c("DoD", "DoR", "age")]
+
+
+        if(stringr::str_detect(opts$HFILE,".dta$")){
+          hfile <- read.dta(paste(opts$INPUTDIR, opts$HFILE, sep="/"))[,c("date", "closed")]
+        } else if(stringr::str_detect(opts$HFILE,".txt$")){
+          hfile <- as.data.frame(data.table::fread(paste(opts$INPUTDIR, opts$HFILE, sep="/"))[,c("date", "closed")])
+        } else {
+          stop("unknown file type for HFILE")
+        }
+      })
     }
-    #MOMOfile <- MOMOfile[,c("DoD", "DoR", "age")]
+
+    # A little bit of processing of the data
     MOMOfile$DoD <- as.Date(MOMOfile$DoD, origin="1960-1-1")
     MOMOfile$DoR <- as.Date(MOMOfile$DoR, origin="1960-1-1")
     MOMOfile <- MOMOfile[MOMOfile$DoD<=opts$DoA & MOMOfile$DoR<=opts$DoA,]
-
-    if(stringr::str_detect(opts$HFILE,".dta$")){
-      hfile <- read.dta(paste(opts$INPUTDIR, opts$HFILE, sep="/"))[,c("date", "closed")]
-    } else if(stringr::str_detect(opts$HFILE,".txt$")){
-      hfile <- as.data.frame(data.table::fread(paste(opts$INPUTDIR, opts$HFILE, sep="/"))[,c("date", "closed")])
-    } else {
-      stop("unknown file type for HFILE")
-    }
     hfile$date <- as.Date(hfile$date)
 
-  })
-  if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t1[3], 2)))
+    if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t1[3], 2)))
 
 
-  if(opts$verbose) cat("\nCreating MOMO input... ")
-  t2 <- system.time({
-    MOMOinput <- makeMOMOinput(MOMOfile, opts$DoA, opts$DoPR, hfile,
-      country=opts$country, source=opts$source, colnames=c("DoD", "DoR", "age"),
-      WStart=opts$WStart, WEnd=opts$WEnd, Ysum=opts$Ysum, Wsum=opts$Wsum,
-      groups=opts$MOMOgroups, models=opts$MOMOmodels, delayCorr=opts$back, histPer=opts$WWW,
-      compatibility.mode=TRUE)
-  })
-  if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))
-
-
-  if(opts$verbose) cat("Iterating over age groups:\n")
-  MOMOoutput <- analyzeMOMO(MOMOinput, datesISO=opts$datesISO, useAUTOMN=opts$useAUTOMN,
-  	USEglm2=opts$USEglm2, compatibility.mode=TRUE, verbose=opts$verbose)
-
-  dataExport$toSave <- vector("list",length=length(MOMOoutput))
-  for(j in 1:length(dataExport$toSave)){
-    dataExport$toSave[[j]] <- MOMOoutput[[j]]$toSave
-    MOMOoutput[[j]]$toSave <- NULL
-  }
-  if(opts$verbose) cat("Joining output... ")
-  MOMOjoinedOutput <- joinMOMOoutput(MOMOoutput)
-  if(opts$verbose) cat("DONE\n")
-
-  if(opts$verbose) cat("Creating MOMO directories and writing all output to disk... ")
-  MOMOdirs <- createMOMOdirectories(MOMOoutput, opts$WDIR)
-  writeMOMOoutput(MOMOjoinedOutput, MOMOdirs, MOMOoutput)
-  if(opts$verbose) cat("DONE\n")
-
-
-  if (opts$plotGraphs) {
-    t3 <- system.time({
-      if(opts$verbose) cat("\nPlotting graphs:")
-      if(opts$verbose) cat(" (Control graphs)");
-      controlGraphsMOMO(MOMOoutput, MOMOdirs)
-      if(opts$verbose) cat(" (Excess graphs)");
-      excessGraphsMOMO(MOMOoutput, MOMOdirs)
-      if(opts$verbose) cat(" (Fit graphs)");
-      fitGraphsMOMO(MOMOoutput, MOMOdirs)
-      if(opts$verbose) cat(" (CUSUM graphs)");
-      CUSUMgraphsMOMO(MOMOoutput, MOMOdirs)
+    if(opts$verbose) cat("\nCreating MOMO input... ")
+    t2 <- system.time({
+      MOMOinput <- makeMOMOinput(MOMOfile, opts$DoA, opts$DoPR, hfile,
+        country=opts$country, source=opts$source, colnames=c("DoD", "DoR", "age"),
+        WStart=opts$WStart, WEnd=opts$WEnd, Ysum=opts$Ysum, Wsum=opts$Wsum,
+        groups=opts$MOMOgroups, models=opts$MOMOmodels, delayCorr=opts$back, histPer=opts$WWW,
+        compatibility.mode=TRUE)
     })
-    if(opts$verbose) cat(sprintf(" DONE \n\t(in %s seconds)\n", round(t3[3], 1)))
-  }
+    if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))
+
+    if(opts$verbose) cat("Iterating over age groups:\n")
+    MOMOoutput <- analyzeMOMO(MOMOinput, datesISO=opts$datesISO, useAUTOMN=opts$useAUTOMN,
+    	USEglm2=opts$USEglm2, compatibility.mode=TRUE, verbose=opts$verbose)
+
+    dataExport$toSave <- vector("list",length=length(MOMOoutput))
+    for(j in 1:length(dataExport$toSave)){
+      dataExport$toSave[[j]] <- MOMOoutput[[j]]$toSave
+      MOMOoutput[[j]]$toSave <- NULL
+    }
+    if(opts$verbose) cat("Joining output... ")
+    MOMOjoinedOutput <- joinMOMOoutput(MOMOoutput)
+    if(opts$verbose) cat("DONE\n")
+
+    if(opts$verbose) cat("Creating MOMO directories and writing all output to disk... ")
+    MOMOdirs <- createMOMOdirectories(MOMOoutput, opts$WDIR)
+    writeMOMOoutput(MOMOjoinedOutput, MOMOdirs, MOMOoutput)
+    if(opts$verbose) cat("DONE\n")
 
 
+    if (opts$plotGraphs) {
+      t3 <- system.time({
+        if(opts$verbose) cat("\nPlotting graphs:")
+        if(opts$verbose) cat(" (Control graphs)");
+        controlGraphsMOMO(MOMOoutput, MOMOdirs)
+        if(opts$verbose) cat(" (Excess graphs)");
+        excessGraphsMOMO(MOMOoutput, MOMOdirs)
+        if(opts$verbose) cat(" (Fit graphs)");
+        fitGraphsMOMO(MOMOoutput, MOMOdirs)
+        if(opts$verbose) cat(" (CUSUM graphs)");
+        CUSUMgraphsMOMO(MOMOoutput, MOMOdirs)
+      })
+      if(opts$verbose) cat(sprintf(" DONE \n\t(in %s seconds)\n", round(t3[3], 1)))
+    }
   })
 
   if(opts$verbose) cat("\nCompleted the analysis in ",round(t0[3],1)," seconds total.\n")

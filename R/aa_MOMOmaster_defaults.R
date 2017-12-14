@@ -54,7 +54,15 @@ opts$HFILE <- "holidayfilegreece.dta"
 # INPUT DIRECTORY (where the above two files can be found)
 opts$INPUTDIR <- "./input"
 
+## alternate parameterization
+# mortality data frame
+opts$MDATA <- NULL
+
+# bank holidays data frame
+opts$HDATA <- NULL
+
 # CODE DIRECTORY (where all the scripts -except this one- are to be found)
+# this should not be neccessary
 opts$CODEDIR <- "./code"
 
 # OUTPUT DIRECTORY (all output will go here)

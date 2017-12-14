@@ -7,14 +7,14 @@
 SetOpts(DoA = as.Date("2015-8-10"), DoPR = as.Date("2008-1-1"),
   WStart = 1, WEnd = 52, country = "Greece", source = "UoP",
   MFILE = "greece_m.dta", HFILE = "holidayfilegreece.dta",
-  INPUTDIR = "./input", WDIR = "./output", back = 3, WWW = 290,
-  Ysum = 2009, Wsum = 34, USEglm2 = TRUE, useAUTOMN = TRUE,
-  datesISO = FALSE, plotGraphs = TRUE, MOMOgroups = list(`0to4` =
-  "age >= 0 & age <=4", `5to14` = "age >= 5 & age <=14", `15to64` =
-  "age >= 15 & age <=64", `65P` = "age >= 65 | is.na(age)", Total =
-  "age >= 0 | is.na(age)"), MOMOmodels = c(`0to4` = "LINE", `5to14` = "LINE",
-  `15to64` = "LINE_SIN", `65P` = "LINE_SIN", Total = "LINE_SIN"),
-  verbose = TRUE)
+  INPUTDIR = "./input", MDATA = NULL, HDATA = NULL, WDIR = "./output",
+  back = 3, WWW = 290, Ysum = 2009, Wsum = 34, USEglm2 = TRUE,
+  useAUTOMN = TRUE, datesISO = FALSE, plotGraphs = TRUE,
+  MOMOgroups = list(`0to4` = "age >= 0 & age <=4", `5to14` =
+  "age >= 5 & age <=14", `15to64` = "age >= 15 & age <=64", `65P` =
+  "age >= 65 | is.na(age)", Total = "age >= 0 | is.na(age)"),
+  MOMOmodels = c(`0to4` = "LINE", `5to14` = "LINE", `15to64` = "LINE_SIN",
+  `65P` = "LINE_SIN", Total = "LINE_SIN"), verbose = TRUE)
 }
 \arguments{
 \item{DoA}{Date of aggregation (see specifications, the only information to change weekly). Provided in ISO format, i.e. YYYY-MM-DD.}
@@ -29,11 +29,15 @@ SetOpts(DoA = as.Date("2015-8-10"), DoPR = as.Date("2008-1-1"),
 
 \item{source}{Source of data}
 
-\item{MFILE}{Name of your mortality file, either stata format (.dta) or text file (.txt)}
+\item{MFILE}{Name of your mortality file, either stata format (.dta) or text file (.txt) [you can use MDATA instead]}
 
-\item{HFILE}{Name of file containing bank Holidays (see specifications), either stata format (.dta) or text file (.txt)}
+\item{HFILE}{Name of file containing bank Holidays (see specifications), either stata format (.dta) or text file (.txt) [you can use HDATA instead]}
 
 \item{INPUTDIR}{Input directory (where MFILE and HFILE can be found)}
+
+\item{MDATA}{A data.frame containing the data that would have been contained inside MFILE. MDATA takes priority over MFILE if both are specified.}
+
+\item{HDATA}{A data.frame containing the data that would have been contained inside HFILE. HDATA takes priority over HFILE if both are specified.}
 
 \item{WDIR}{Output directory (all output will go here)}
 

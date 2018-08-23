@@ -114,6 +114,60 @@ delayMOMO_original <- function(aggr, zvalue=1.96) {
 }
 
 #' @importFrom MASS polr
+delayMOMO_2017_12_internal <- function(runData, zvalue=1.96){
+  runData <- copy(runData)
+  #
+  #runData=aggr[aggr$WoDi %in% 1:52,]
+  #fit <- rms::orm(delay~WR+closed,data=runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk < momoAttr$WEEK2),])
+  fit <- MASS::polr(delay~WR+closed,data=runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk < momoAttr$WEEK2),])
+
+  p <- predict(fit,newdata=runData,type="prob")
+  for(r in 0:momoAttr$delayCorr){
+    var <- sprintf("p%s",r)
+    runData[,(var):=p[,r+1]]
+  }
+  for(i in 1:momoAttr$delayCorr){
+    j=i-1
+    newVar <- sprintf("p%s",i)
+    oldVar <- sprintf("p%s",j)
+    runData[,(newVar):=get(newVar)+get(oldVar)]
+  }
+
+  for(r in 0:momoAttr$delayCorr){
+    form <- sprintf("nb~WR+p%s",r)
+    fit <- glm(as.formula(form),data=runData[delay==r],family="poisson")
+
+    od <- max(1,sum(fit$weights * fit$residuals^2)/fit$df.r)
+
+    p <- predict(fit,newdata=runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk <= momoAttr$WEEK - r),],type="response")
+    stdp <- predict(fit,newdata=runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk <= momoAttr$WEEK - r),],se.fit=T)$se.fit
+
+    predvar <- sprintf("pred%s",r)
+
+    UPIvar <- sprintf("UPI%s",r)
+    LPIvar <- sprintf("LPI%s",r)
+
+    UCIvar <- sprintf("UCI%s",r)
+    LCIvar <- sprintf("LCI%s",r)
+
+    runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk <= momoAttr$WEEK - r),
+         (predvar):=p]
+
+    runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk <= momoAttr$WEEK - r),
+         (UPIvar):=(p^(2/3)+ zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
+    runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk <= momoAttr$WEEK - r),
+         (LPIvar):=(p^(2/3)- zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
+
+    runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk <= momoAttr$WEEK - r),(UCIvar):=p + zvalue*stdp]
+    runData[(momoAttr$PRWEEK < runData$wk) & (runData$wk <= momoAttr$WEEK - r),(LCIvar):=p - zvalue*stdp]
+
+    var <- sprintf("p%s",r)
+    runData[,(var):=NULL]
+  }
+  return(runData)
+}
+
+#' @importFrom MASS polr
 delayMOMO_2017_12 <- function(aggr, zvalue=1.96) {
   #aggr <- readRDS("test.RDS")
   aggrMaster <- copy(aggr)
@@ -169,51 +223,10 @@ delayMOMO_2017_12 <- function(aggr, zvalue=1.96) {
   aggr <- aggr[!is.na(WR)]
 
   aggr[,delay:=factor(delay)]
-  fit <- MASS::polr(delay~WR+closed,data=aggr[(momoAttr$PRWEEK < aggr$wk) & (aggr$wk < momoAttr$WEEK2),])
 
-  p <- predict(fit,newdata=aggr,type="prob")
-  for(r in 0:momoAttr$delayCorr){
-    var <- sprintf("p%s",r)
-    aggr[,(var):=p[,r+1]]
-  }
-  for(i in 1:momoAttr$delayCorr){
-    j=i-1
-    newVar <- sprintf("p%s",i)
-    oldVar <- sprintf("p%s",j)
-    aggr[,(newVar):=get(newVar)+get(oldVar)]
-  }
-
-  for(r in 0:momoAttr$delayCorr){
-    form <- sprintf("nb~WR+p%s",r)
-    fit <- glm(as.formula(form),data=aggr[delay==r],family="poisson")
-
-    od <- max(1,sum(fit$weights * fit$residuals^2)/fit$df.r)
-
-    p <- predict(fit,newdata=aggr[(momoAttr$PRWEEK < aggr$wk) & (aggr$wk <= momoAttr$WEEK - r),],type="response")
-    stdp <- predict(fit,newdata=aggr[(momoAttr$PRWEEK < aggr$wk) & (aggr$wk <= momoAttr$WEEK - r),],se.fit=T)$se.fit
-
-    predvar <- sprintf("pred%s",r)
-
-    UPIvar <- sprintf("UPI%s",r)
-    LPIvar <- sprintf("LPI%s",r)
-
-    UCIvar <- sprintf("UCI%s",r)
-    LCIvar <- sprintf("LCI%s",r)
-
-    aggr[(momoAttr$PRWEEK < aggr$wk) & (aggr$wk <= momoAttr$WEEK - r),
-         (predvar):=p]
-
-    aggr[(momoAttr$PRWEEK < aggr$wk) & (aggr$wk <= momoAttr$WEEK - r),
-         (UPIvar):=(p^(2/3)+ zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
-    aggr[(momoAttr$PRWEEK < aggr$wk) & (aggr$wk <= momoAttr$WEEK - r),
-         (LPIvar):=(p^(2/3)- zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
-
-    aggr[(momoAttr$PRWEEK < aggr$wk) & (aggr$wk <= momoAttr$WEEK - r),(UCIvar):=p + zvalue*stdp]
-    aggr[(momoAttr$PRWEEK < aggr$wk) & (aggr$wk <= momoAttr$WEEK - r),(LCIvar):=p - zvalue*stdp]
-
-    var <- sprintf("p%s",r)
-    aggr[,(var):=NULL]
-  }
+  # internal
+  aggr <- delayMOMO_2017_12_internal(runData=aggr,zvalue=zvalue)
+  # end internal
 
   setorder(aggr,YoDi,WoDi,delay)
   aggr[,rowNum:=1:.N,by=.(YoDi,WoDi)]
@@ -262,11 +275,108 @@ delayMOMO_2017_12 <- function(aggr, zvalue=1.96) {
   return(retval)
 }
 
+delayMOMO_richard_internal <- function(runData,zvalue=1.96){
+  modellingWeeks <- momoAttr$PRWEEK:momoAttr$WEEK2
+  runData <- copy(runData)
+  for(r in 0:momoAttr$delayCorr){
+    form <- sprintf("nb~WR%s",r)
+    fit <- glm(as.formula(form),data=runData[runData$wk %in% modellingWeeks],family="poisson")
+
+    od <- max(1,sum(fit$weights * fit$residuals^2)/fit$df.r)
+
+    p <- predict(fit,newdata=runData,type="response")
+    stdp <- predict(fit,newdata=runData,se.fit=T)$se.fit
+
+    predvar <- sprintf("pred%s",r)
+
+    UPIvar <- sprintf("UPI%s",r)
+    LPIvar <- sprintf("LPI%s",r)
+
+    UCIvar <- sprintf("UCI%s",r)
+    LCIvar <- sprintf("LCI%s",r)
+
+    runData[,(predvar):=p]
+
+    runData[,(UPIvar):=(p^(2/3)+ zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
+    runData[,(LPIvar):=(p^(2/3)- zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
+
+    runData[,(UCIvar):=p + zvalue*stdp]
+    runData[,(LCIvar):=p - zvalue*stdp]
+
+    var <- sprintf("p%s",r)
+    runData[,(var):=NULL]
+  }
+  return(runData)
+}
+
+#' @importFrom MASS polr
+delayMOMO_richard <- function(aggr, zvalue=1.96) {
+  #aggr <- readRDS("test.RDS")
+  aggrMaster <- copy(aggr)
+  aggr <- aggr[order(aggr$wk),]
+
+  #* Drop obs in week of aggregation
+  aggr <- aggr[-nrow(aggr),]
+
+  setDT(aggr)
+  modellingPeriods <- list(
+    "summer"=21:39,
+    "winter"=c(1:20,40:52)
+  )
+  retval <- vector("list",length=length(modellingPeriods))
+  for(i in 1:length(modellingPeriods)){
+    retval[[i]] <- delayMOMO_richard_internal(runData=aggr[WoDi %in% modellingPeriods[[i]]],zvalue=zvalue)
+  }
+  aggr <- rbindlist(retval)
+  setorder(aggr,YoDi,WoDi)
+
+  aggr[,delay:=max(wk)-wk]
+
+  aggr[,pred:=as.numeric(NA)]
+  aggr[,UPIc:=as.numeric(NA)]
+  aggr[,LPIc:=as.numeric(NA)]
+  aggr[,UCIc:=as.numeric(NA)]
+  aggr[,LCIc:=as.numeric(NA)]
+
+  for(r in 0:momoAttr$delayCorr){
+    var <- sprintf("pred%s",r)
+    aggr[delay==r,pred:=get(var)]
+    aggr[,(var):=NULL]
+
+    var <- sprintf("UPI%s",r)
+    aggr[delay==r,UPIc:=get(var)]
+    aggr[,(var):=NULL]
+
+    var <- sprintf("LPI%s",r)
+    aggr[delay==r,LPIc:=get(var)]
+    aggr[,(var):=NULL]
+
+    var <- sprintf("UCI%s",r)
+    aggr[delay==r,UCIc:=get(var)]
+    aggr[,(var):=NULL]
+
+    var <- sprintf("LCI%s",r)
+    aggr[delay==r,LCIc:=get(var)]
+    aggr[,(var):=NULL]
+  }
+
+  #** we generate the CORRECTED number of death
+  aggr[wk<momoAttr$WEEK2,nbc:=nb]
+  aggr[momoAttr$WEEK2 <= wk & wk<= momoAttr$WEEK, nbc:=pmax(0,pred,nb)]
+
+  aggr[,GROUP:=momoAttr$group]
+
+  aggr <- as.data.frame(aggr)
+  return(aggr)
+}
+
 delayMOMO <- function(aggr, zvalue=1.96){
   if(opts$delayVersion=="original"){
     delayMOMO_original(aggr=aggr, zvalue=zvalue)
   } else if(opts$delayVersion=="2017-12"){
     delayMOMO_2017_12(aggr=aggr, zvalue=zvalue)
+  } else if(opts$delayVersion=="richard"){
+    delayMOMO_richard(aggr=aggr, zvalue=zvalue)
   }
 }
 

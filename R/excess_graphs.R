@@ -1,7 +1,7 @@
 # MOMOpack for R
 
-# Originally MOMOpack V 4.3 for Stata, 
-# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. 
+# Originally MOMOpack V 4.3 for Stata,
+# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO.
 # Ported into R by Theodore Lytras <thlytras@gmail.com>
 
 
@@ -38,7 +38,7 @@ excessGraphsMOMO <- function(output, dirs, group=NA) {
       par(mar=c(8,3,3.5,3))
       with(data, {
 	# Plot the rest of the variables
-	plot(0, type="n", xlim=range(xwk), 
+	plot(0, type="n", xlim=range(xwk),
 	  ylim=c(min(data[,y], na.rm=TRUE) , max(data[,y], na.rm=TRUE)),
 	  xlab=NA, ylab=NA, xaxt="n")
 	axis(1, at=xwk[grep("-01|-26", xlabels)], labels=xlabels[grep("-01|-26", xlabels)])
@@ -50,33 +50,33 @@ excessGraphsMOMO <- function(output, dirs, group=NA) {
 	mtext("Week number", side=1, line=2, cex=1*cexf)
 	if (length(main)>0) mtext(main[1], side=3, cex=1.2*cexf, line=1.8, font=2)
 	if (length(main)>1) mtext(main[2], side=3, cex=1.2*cexf, line=0.5, font=2)
-	legend("top", legend=legend, col=col, inset=c(0,1.19), xpd=TRUE, ncol=3, 
-	      seg.len=4, lwd=lwd,  
+	legend("top", legend=legend, col=col, inset=c(0,1.19), xpd=TRUE, ncol=3,
+	      seg.len=4, lwd=lwd,
 	      lty=lty, pch=c(NA,19)[point+1])
       })
     }
 
     # We first plot the graphs seperately,
 
-    png(sprintf("%s/GRAPH-CRUDE-MORTALITY-%s-%s-%s-%s.png", dirs$FINAL, attr(final, "country"), attr(final, "group"), attr(final, "YOSI"), attr(final, "WOSI")), 
+    png(sprintf("%s/GRAPH-CRUDE-MORTALITY-%s-%s-%s-%s.png", dirs$FINAL, momoAttr$country, momoAttr$group, momoAttr$YOSI, momoAttr$WOSI),
 	width=2250, height=1000, pointsize=14, res=144)
     plotExcessGraph(data=subset(final, COND6==1), cex=1,
 	y=c("nb", "DOTm", "DOTc", "Pnb", names(final)[grep("UPIb", names(final))]),
 	line=TRUE, point=FALSE, lwd=3, lty=1,
 	col = c("navyblue", "slateblue", "seagreen", "orange2", paste("yellow", c(3:1,3:1,3:1)[1:length(grep("UPIb", names(final)))], sep="")),
-	main = c(sprintf("Mortality in %s - Age group %s years - week %s-%s", attr(final, "country"), attr(final, "group"), attr(final, "WOSI"), attr(final, "YOSI")),
+	main = c(sprintf("Mortality in %s - Age group %s years - week %s-%s", momoAttr$country, momoAttr$group, momoAttr$WOSI, momoAttr$YOSI),
 	    sprintf("Crude mortality, MOMO %s Model %s", VERSION, MODEL)),
 	legend = c("Number of deaths known in the series", "Data used in the model", "Corrected number of deaths", "Baseline",
 	    paste("Prediction interval +", 2*length(grep("UPIb", names(final))), " Zscores", sep="")))
     dev.off()
 
-    png(sprintf("%s/GRAPH-STD-VARIATIONS-%s-%s-%s-%s.png", dirs$FINAL, attr(final, "country"), attr(final, "group"), attr(final, "YOSI"), attr(final, "WOSI")), 
+    png(sprintf("%s/GRAPH-STD-VARIATIONS-%s-%s-%s-%s.png", dirs$FINAL, momoAttr$country, momoAttr$group, momoAttr$YOSI, momoAttr$WOSI),
 	width=2250, height=1000, pointsize=14, res=144)
     plotExcessGraph(data=subset(final, COND6==1), cex=1,
 	y=c("zscore", "DOTzm", "DOTz"),
-	line=TRUE, point=FALSE, lwd=3, lty=1, baseline=TRUE, 
+	line=TRUE, point=FALSE, lwd=3, lty=1, baseline=TRUE,
 	col = c("navyblue", "slateblue", "seagreen"),
-	main = c(sprintf("Mortality in %s - Age group %s years - week %s-%s", attr(final, "country"), attr(final, "group"), attr(final, "WOSI"), attr(final, "YOSI")), 
+	main = c(sprintf("Mortality in %s - Age group %s years - week %s-%s", momoAttr$country, momoAttr$group, momoAttr$WOSI, momoAttr$YOSI),
 	    "Standardized deviation from the baseline"),
 	legend = c("Z-score", "Z-score on data used in the model", "Z-score on corrected data"))
     dev.off()
@@ -84,20 +84,20 @@ excessGraphsMOMO <- function(output, dirs, group=NA) {
 
     # And then we plot both again on the same canvas (png file)
 
-    png(sprintf("%s/GRAPH-COMBINED-VARIATIONS-%s-%s-%s-%s.png", dirs$FINAL, attr(final, "country"), attr(final, "group"), attr(final, "YOSI"), attr(final, "WOSI")), 
+    png(sprintf("%s/GRAPH-COMBINED-VARIATIONS-%s-%s-%s-%s.png", dirs$FINAL, momoAttr$country, momoAttr$group, momoAttr$YOSI, momoAttr$WOSI),
 	width=2250, height=2000, pointsize=14, res=144)
     par(mfcol=c(2,1))
     plotExcessGraph(data=subset(final, COND6==1), cex=1,
 	y=c("nb", "DOTm", "DOTc", "Pnb", names(final)[grep("UPIb", names(final))]),
 	line=TRUE, point=FALSE, lwd=3, lty=1,
 	col = c("navyblue", "slateblue", "seagreen", "orange2", paste("yellow", c(3:1,3:1,3:1)[1:length(grep("UPIb", names(final)))], sep="")),
-	main = c(sprintf("Mortality in %s - Age group %s years - week %s-%s", attr(final, "country"), attr(final, "group"), attr(final, "WOSI"), attr(final, "YOSI")),
+	main = c(sprintf("Mortality in %s - Age group %s years - week %s-%s", momoAttr$country, momoAttr$group, momoAttr$WOSI, momoAttr$YOSI),
 	    sprintf("Crude mortality, MOMO %s Model %s", VERSION, MODEL)),
 	legend = c("Number of deaths known in the series", "Data used in the model", "Corrected number of deaths", "Baseline",
 	    paste("Prediction interval +", 2*length(grep("UPIb", names(final))), " Zscores", sep="")))
     plotExcessGraph(data=subset(final, COND6==1), cex=1,
 	y=c("zscore", "DOTzm", "DOTz"),
-	line=TRUE, point=FALSE, lwd=3, lty=1, baseline=TRUE, 
+	line=TRUE, point=FALSE, lwd=3, lty=1, baseline=TRUE,
 	col = c("navyblue", "slateblue", "seagreen"),
 	main = c(NA, "Standardized deviation from the baseline"),
 	legend = c("Z-score", "Z-score on data used in the model", "Z-score on corrected data"))

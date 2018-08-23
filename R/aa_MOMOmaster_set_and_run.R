@@ -21,6 +21,7 @@
 #' @param useAUTOMN Keep using the column name "Automn" (instead of "Autumn") as in Stata MOMOpack
 #' @param datesISO When saving dates in text files, use ISO format (standard in R) instead of the Stata "\%d" format
 #' @param plotGraphs Setting this to FALSE suppressess the plotting of the various graphs (and saves time)
+#' @param delayVersion Using the "original" delay code or the "2017-12" delay code
 #' @param MOMOgroups Definition of the groups to be analyzed
 #' @param MOMOmodels Names in the following vector should correspond to the MOMOgroups and the corresponding values (model to use for each group) should be one of "LINE", "SPLINE", "LINE_SIN", "SPLINE_SIN"
 #' @param verbose Printing out information
@@ -46,6 +47,7 @@ SetOpts <- function(
   useAUTOMN = TRUE,
   datesISO = FALSE,
   plotGraphs = TRUE,
+  delayVersion = "original",
   MOMOgroups = list(
     "0to4" =  "age >= 0 & age <=4",
     "5to14" = "age >= 5 & age <=14",
@@ -61,6 +63,8 @@ SetOpts <- function(
     "Total" = "LINE_SIN"
   ),
   verbose=TRUE){
+
+  if(!delayVersion %in% c("original","2017-12")) stop("delayVersion not 'original' or '2017-12'")
 
   opts$setByUser <- TRUE
 
@@ -84,6 +88,7 @@ SetOpts <- function(
   opts$useAUTOMN <- useAUTOMN
   opts$datesISO <- datesISO
   opts$plotGraphs <- plotGraphs
+  opts$delayVersion <- delayVersion
   opts$MOMOgroups <- MOMOgroups
   opts$MOMOmodels <- MOMOmodels
   opts$verbose <- verbose
@@ -186,7 +191,7 @@ RunMoMo <- function(){
     if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t2[3], 2)))
 
     if(opts$verbose) cat("Iterating over age groups:\n")
-    MOMOoutput <- analyzeMOMO(MOMOinput, datesISO=opts$datesISO, useAUTOMN=opts$useAUTOMN,
+    MOMOoutput <- analyzeMOMO(mi=MOMOinput, datesISO=opts$datesISO, useAUTOMN=opts$useAUTOMN,
     	USEglm2=opts$USEglm2, compatibility.mode=TRUE, verbose=opts$verbose)
 
     dataExport$toSave <- vector("list",length=length(MOMOoutput))

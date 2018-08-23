@@ -15,10 +15,10 @@ createMOMOdirectories <- function(output, wdir) {
   # GLOBAL: WEEK NUMBER to STUDY according to the date of aggregation
   # = complete ISO week, (From monday to Sunday) PRECEDING the date of aggregation
   # for week from Monday to Sunday and aggregation from Monday the week after.
-  WOSI <- attr(output[[1]]$finalDataset, "WOSI")
-  YOSI <- attr(output[[1]]$finalDataset, "YOSI")
+  WOSI <- momoAttr$WOSI
+  YOSI <- momoAttr$YOSI
 
-  country <- attr(output[[1]]$finalDataset, "country")
+  country <- momoAttr$country
 
   outputDir <- sprintf("%s/MOMO%s-%s-%s-%s", wdir, VERSION, country, YOSI, WOSI)
   dirs <- list(
@@ -39,10 +39,10 @@ createMOMOdirectories <- function(output, wdir) {
 
 
 joinMOMOoutput <- function(output) {
-  VERSION <- unique(output[[1]]$finalDataset$Version)
-  WOSI <- attr(output[[1]]$finalDataset, "WOSI")
-  YOSI <- attr(output[[1]]$finalDataset, "YOSI")
-  country <- attr(output[[1]]$finalDataset, "country")
+  VERSION <- momoAttr$version
+  WOSI <- momoAttr$WOSI
+  YOSI <- momoAttr$YOSI
+  country <- momoAttr$country
 
   joinedOutput <- list(
 	EUROMOMOcomplete = do.call(rbind, lapply(output, function(x)x$EUROMOMOcomplete)),
@@ -60,8 +60,8 @@ joinMOMOoutput <- function(output) {
   attr(joinedOutput, "WOSI") <- WOSI
   attr(joinedOutput, "YOSI") <- YOSI
   attr(joinedOutput, "country") <- country
-  attr(joinedOutput$periods, "WStart") <- attr(output[[1]]$periods, "WStart")
-  attr(joinedOutput$periods, "WEnd") <- attr(output[[1]]$periods, "WEnd")
+  attr(joinedOutput$periods, "WStart") <- momoAttr$WStart
+  attr(joinedOutput$periods, "WEnd") <- momoAttr$WEnd
   return(joinedOutput)
 }
 

@@ -9,6 +9,10 @@
 dataExport <- new.env(parent = emptyenv())
 
 #' Placeholder list for all the following options
+#' @export momoAttr
+momoAttr <- new.env(parent = emptyenv())
+
+#' Placeholder list for all the following options
 #' @export opts
 opts <- new.env(parent = emptyenv())
 
@@ -97,6 +101,10 @@ opts$datesISO <- FALSE
 
 # Setting this to FALSE suppressess the plotting of the various graphs (and saves time)
 opts$plotGraphs <- TRUE
+
+# Delay version
+# Either "original" or "2017-12"
+opts$delayVersion <- "original"
 
 
 # ******** DO NOT MODIFY BELOW THIS LINE ********

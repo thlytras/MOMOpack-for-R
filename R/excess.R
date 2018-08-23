@@ -6,12 +6,13 @@
 
 #' @import glm2
 excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
+  momoAttr$version <- version
   temp <- cbind(aggr, lspline(aggr$wk, nknots=2, names=c("Swk1", "Swk2", "Swk3")))
   aggr <- transferMOMOattributes(temp, aggr)
 
   # DEFINITION OF SPRING AND AUTUMN
-  attr(aggr, "SPRING") <- c(15, 26)
-  attr(aggr, "AUTUMN") <- c(36, 45)
+  momoAttr$SPRING <- c(15, 26)
+  momoAttr$AUTUMN <- c(36, 45)
 
   # data management
   aggr$season <- NA
@@ -39,18 +40,18 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
 
   # we do not use data before WWW week before the Drop date
   # for modelling baseline without the influence of A-FLU
-  attr(aggr, "DROP") <- aggr$wk[aggr$YoDi == attr(aggr, "Ydrop") & aggr$WoDi == attr(aggr, "Wdrop")]
+  momoAttr$DROP <- aggr$wk[aggr$YoDi == momoAttr$Ydrop & aggr$WoDi == momoAttr$Wdrop]
 
 
   # Conditions for modelling
   # We remove "winter" and "summer"...actually we keep spring and autumn
-  aggr$COND3[(aggr$WoDi>attr(aggr, "SPRING")[1] & aggr$WoDi<attr(aggr, "SPRING")[2]) | (aggr$WoDi>attr(aggr, "AUTUMN")[1] & aggr$WoDi<attr(aggr, "AUTUMN")[2])] <- 1
+  aggr$COND3[(aggr$WoDi>momoAttr$SPRING[1] & aggr$WoDi<momoAttr$SPRING[2]) | (aggr$WoDi>momoAttr$AUTUMN[1] & aggr$WoDi<momoAttr$AUTUMN[2])] <- 1
   # We remove the previous weeks if there is no unusual excess observed
-  aggr$COND4 <- as.integer(aggr$YoDi<attr(aggr, "Ydrop") | (aggr$YoDi==attr(aggr, "Ydrop") & aggr$WoDi<attr(aggr, "Wdrop")))
+  aggr$COND4 <- as.integer(aggr$YoDi<momoAttr$Ydrop | (aggr$YoDi==momoAttr$Ydrop & aggr$WoDi<momoAttr$Wdrop))
   #we remove the period with delay
-  aggr$COND5[aggr$wk < attr(aggr, "WEEK2")] <- 1
+  aggr$COND5[aggr$wk < momoAttr$WEEK2] <- 1
   # we keep only valid historical data
-  aggr$COND6[(aggr$wk > attr(aggr, "WEEK") - attr(aggr, "histPer")) & (aggr$wk <= attr(aggr, "WEEK"))] <- 1
+  aggr$COND6[(aggr$wk > momoAttr$WEEK - momoAttr$histPer) & (aggr$wk <= momoAttr$WEEK)] <- 1
 
   aggr$CONDmodel[with(aggr, COND3==1 & COND4==1 & COND5==1 & COND6==1)] <- 1
   aggr$CONDpred[aggr$COND6 == 1] <- 1
@@ -63,28 +64,28 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
   # (This is equivalent to the option irls in stata glm)
   glmToUse <- c("glm", "glm2")[(USEglm2)+1]
 
-  if (attr(aggr,"model")=="LINE") {
+  if (momoAttr$model=="LINE") {
     m1 <- do.call(glmToUse, list(nbc ~ wk, data=subset(aggr, CONDmodel==1), family=poisson))
     od <- max(1,sum(m1$weights * m1$residuals^2)/m1$df.r)
     if (od > 1) m1 <- do.call(glmToUse, list(nbc ~ wk, data=subset(aggr, CONDmodel==1), family=quasipoisson))
     aggr$Model <- "LINE"
   }
 
-  if (attr(aggr,"model")=="SPLINE") {
+  if (momoAttr$model=="SPLINE") {
     m1 <- do.call(glmToUse, list(nbc ~ Swk1 + Swk2 + Swk3, data=subset(aggr, CONDmodel==1), family=poisson))
     od <- max(1,sum(m1$weights * m1$residuals^2)/m1$df.r)
     if (od > 1) m1 <- do.call(glmToUse, list(nbc ~ Swk1 + Swk2 + Swk3, data=subset(aggr, CONDmodel==1), family=quasipoisson))
     aggr$Model <- "SPLINES"
   }
 
-  if (attr(aggr,"model")=="LINE_SIN") {
+  if (momoAttr$model=="LINE_SIN") {
     m1 <- do.call(glmToUse, list(nbc ~ sin + cos + wk, data=subset(aggr, CONDmodel==1), family=poisson))
     od <- max(1,sum(m1$weights * m1$residuals^2)/m1$df.r)
     if (od > 1) m1 <- do.call(glmToUse, list(nbc ~ sin + cos + wk, data=subset(aggr, CONDmodel==1), family=quasipoisson))
     aggr$Model <- "LINES_SIN"
   }
 
-  if (attr(aggr,"model")=="SPLINE_SIN") {
+  if (momoAttr$model=="SPLINE_SIN") {
     m1 <- do.call(glmToUse, list(nbc ~ sin + cos + Swk1 + Swk2 + Swk3, data=subset(aggr, CONDmodel==1), family=poisson))
     od <- max(1,sum(m1$weights * m1$residuals^2)/m1$df.r)
     if (od > 1) m1 <- do.call(glmToUse, list(nbc ~ sin + cos + Swk1 + Swk2 + Swk3, data=subset(aggr, CONDmodel==1), family=quasipoisson))
@@ -121,17 +122,17 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
 
 
   # To better observe the week under study in the graph, we create new variables
-  aggr$DOTb[which(aggr$wk>=attr(aggr, "WEEK2") & aggr$wk<=attr(aggr, "WEEK"))] <- aggr$Pnb[which(aggr$wk>=attr(aggr, "WEEK2") & aggr$wk<=attr(aggr, "WEEK"))]
-  aggr$DOTc[which(aggr$wk>=attr(aggr, "WEEK2") & aggr$wk<=attr(aggr, "WEEK"))] <- aggr$nbc[which(aggr$wk>=attr(aggr, "WEEK2") & aggr$wk<=attr(aggr, "WEEK"))]
-  aggr$DOTz[which(aggr$wk>=attr(aggr, "WEEK2") & aggr$wk<=attr(aggr, "WEEK"))] <- aggr$zscore[which(aggr$wk>=attr(aggr, "WEEK2") & aggr$wk<=attr(aggr, "WEEK"))]
+  aggr$DOTb[which(aggr$wk>=momoAttr$WEEK2 & aggr$wk<=momoAttr$WEEK)] <- aggr$Pnb[which(aggr$wk>=momoAttr$WEEK2 & aggr$wk<=momoAttr$WEEK)]
+  aggr$DOTc[which(aggr$wk>=momoAttr$WEEK2 & aggr$wk<=momoAttr$WEEK)] <- aggr$nbc[which(aggr$wk>=momoAttr$WEEK2 & aggr$wk<=momoAttr$WEEK)]
+  aggr$DOTz[which(aggr$wk>=momoAttr$WEEK2 & aggr$wk<=momoAttr$WEEK)] <- aggr$zscore[which(aggr$wk>=momoAttr$WEEK2 & aggr$wk<=momoAttr$WEEK)]
   aggr$DOTm[which(aggr$COND3==1 & aggr$COND4==1 & aggr$COND5==1)] <- aggr$nbc[which(aggr$COND3==1 & aggr$COND4==1 & aggr$COND5==1)]
   aggr$DOTzm[which(aggr$COND3==1 & aggr$COND4==1 & aggr$COND5==1)] <- aggr$zscore[which(aggr$COND3==1 & aggr$COND4==1 & aggr$COND5==1)]
 
-  aggr <- aggr[aggr$wk<=attr(aggr, "WEEK")+1,]
+  aggr <- aggr[aggr$wk<=momoAttr$WEEK+1,]
 
   aggr$Version <- version
-  aggr$Spring <- paste("(WoDi>", attr(aggr, "SPRING")[1], " & WoDi<", attr(aggr, "SPRING")[2], ")", sep="")
-  aggr[,c("Autumn","Automn")[useAUTOMN+1]] <- paste("(WoDi>", attr(aggr, "AUTUMN")[1], " & WoDi<", attr(aggr, "AUTUMN")[2], ")", sep="")
+  aggr$Spring <- paste("(WoDi>", momoAttr$SPRING[1], " & WoDi<", momoAttr$SPRING[2], ")", sep="")
+  aggr[,c("Autumn","Automn")[useAUTOMN+1]] <- paste("(WoDi>", momoAttr$AUTUMN[1], " & WoDi<", momoAttr$AUTUMN[2], ")", sep="")
 
 
   # CUSUM
@@ -155,8 +156,8 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
   aggr$h <- (((aggr$ARL0+4)/(aggr$ARL0+2))*log((aggr$ARL0/2)+1))-1.16666
 
   # CUM is the week to start and set the CUSUM at 0
-  attr(aggr, "CUM") <- aggr$wk[aggr$YoDi==attr(aggr, "Ysum") & aggr$WoDi==attr(aggr, "Wsum")]
-  if (length(attr(aggr, "CUM"))==0) attr(aggr, "CUM") <- aggr$wk[1]
+  momoAttr$CUM <- aggr$wk[aggr$YoDi==momoAttr$Ysum & aggr$WoDi==momoAttr$Wsum]
+  if (length(momoAttr$CUM)==0) momoAttr$CUM <- aggr$wk[1]
 
   aggr$CUSUM <- 0
   cu <- 0
@@ -164,7 +165,7 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
   zsc[is.na(zsc)] <- 0
   zsc <- zsc - aggr$k
   ti <- system.time({
-    for (i in which(aggr$wk>=attr(aggr, "CUM") & aggr$wk <= attr(aggr, "WEEK"))) {
+    for (i in which(aggr$wk>=momoAttr$CUM & aggr$wk <= momoAttr$WEEK)) {
       cu <- max(0, cu + zsc[i])
       aggr$CUSUM[i] <- cu
     }
@@ -178,6 +179,7 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
     "UCIe", "LCIe", "resi", "zscore", "DOTm", "DOTc", "DOTb", "DOTz", "DOTzm",
     "COND6", "CONDmodel", "Spring", c("Autumn","Automn")[useAUTOMN+1],
     "CUSUM", "FLAG", "k", "ARL0", "h")]
-  transferMOMOattributes(ret, aggr)
+  #transferMOMOattributes(ret, aggr)
+  return(ret)
 }
 

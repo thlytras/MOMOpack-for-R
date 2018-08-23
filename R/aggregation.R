@@ -28,8 +28,8 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
 
 
   hfile <- merge(data.frame(
-      date=seq.Date(from=min(attr(mi, "hfile")$date),
-		to=as.Date(paste(format(max(attr(mi, "hfile")$date), "%Y"), 12, 31, sep="-")),
+      date=seq.Date(from=min(momoAttr$hfile$date),
+		to=as.Date(paste(format(max(momoAttr$hfile$date), "%Y"), 12, 31, sep="-")),
 		by="day")
       ), attr(mi, "hfile"), all=TRUE)
 
@@ -52,7 +52,7 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
   # for each week we MUST compute the number of day off
   # from monday=0 to the day of aggregation= $NOA
   hfile$closedA <- NA
-  hfile$closedA[hfile$NoW>0 & hfile$NoW<=attr(mi, "NoA")] <- hfile$closed[hfile$NoW>0 & hfile$NoW<=attr(mi, "NoA")]
+  hfile$closedA[hfile$NoW>0 & hfile$NoW<=momoAttr$NoA] <- hfile$closed[hfile$NoW>0 & hfile$NoW<=momoAttr$NoA]
 
   # number of day off (bank holiday) per ISO week
   hfile2 <- aggregate(hfile[,c("closed","closedA")], by=hfile[,c("YoWi","WoWi")], sum, na.rm=TRUE)
@@ -62,8 +62,8 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
   aggr5 <- merge(aggr4, hfile2, all=TRUE, by.x=c("YoDi","WoDi"), by.y=c("YoWi","WoWi"))
 
   # we keep only the valid part of the data set
-  aggr5$YoDi[is.na(aggr5$YoDi) & aggr5$YoDi<=attr(mi, "YOAI")+1] <- aggr5$YoDi[is.na(aggr5$YoDi) & aggr5$YoDi<=attr(mi, "YOAI")+1]
-  aggr5$WoDi[is.na(aggr5$WoDi) & aggr5$YoDi<=attr(mi, "YOAI")+1] <- aggr5$WoDi[is.na(aggr5$WoDi) & aggr5$YoDi<=attr(mi, "YOAI")+1]
+  aggr5$YoDi[is.na(aggr5$YoDi) & aggr5$YoDi<=momoAttr$YOAI+1] <- aggr5$YoDi[is.na(aggr5$YoDi) & aggr5$YoDi<=momoAttr$YOAI+1]
+  aggr5$WoDi[is.na(aggr5$WoDi) & aggr5$YoDi<=momoAttr$YOAI+1] <- aggr5$WoDi[is.na(aggr5$WoDi) & aggr5$YoDi<=momoAttr$YOAI+1]
   aggr5 <- aggr5[order(aggr5$YoDi, aggr5$WoDi),]
   aggr5$YW <- paste(aggr5$YoDi, aggr5$WoDi, sep="")
 
@@ -76,11 +76,13 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
   # WEEK NUMBER to STUDY according to the date of aggregation
   # = complete ISO week, (From monday to Sunday) PRECEDING the date of aggregation
   # for week from Monday to Sunday and aggregation from Monday the week after.
-  attr(aggr5, "WEEK") <- which(aggr5$YoDi==attr(mi, "YOAI") & aggr5$WoDi==attr(mi, "WOAI")) - 1
+  momoAttr$WEEK <- which(aggr5$YoDi==momoAttr$YOAI & aggr5$WoDi==momoAttr$WOAI) - 1
+  attr(aggr5, "WEEK") <- which(aggr5$YoDi==momoAttr$YOAI & aggr5$WoDi==momoAttr$WOAI) - 1
 
   # GLOBAL: Week number, earlier limit for studying delay
   # accroding to the date of "perfect registration" PR
-  attr(aggr5, "PRWEEK") <- which(aggr5$YoDi==attr(mi, "YOPRI") & aggr5$WoDi==attr(mi, "WOPRI"))
+  momoAttr$PRWEEK <- which(aggr5$YoDi==momoAttr$YOPRI & aggr5$WoDi==momoAttr$WOPRI)
+  attr(aggr5, "PRWEEK") <- which(aggr5$YoDi==momoAttr$YOPRI & aggr5$WoDi==momoAttr$WOPRI)
 
 
   # label for ISO weeks
@@ -88,9 +90,12 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
   aggr5$wk2 <- factor(aggr5$labels)
 
   # $WEEK2 is the week number until which we want to model the series
+  momoAttr$WEEK2 <- momoAttr$WEEK - momoAttr$delayCorr
   attr(aggr5, "WEEK2") <- attr(aggr5, "WEEK") - attr(mi, "delayCorr")
 
   # Add the group on the aggregate, and other attributes
+  momoAttr$group <- group
+  momoAttr$model <- momoAttr$models[group]
   aggr5 <- transferMOMOattributes(aggr5, mi, except=c("hfile","groups","models"))
   attr(aggr5, "group") <- group
   attr(aggr5, "model") <- attr(mi, "models")[group]
@@ -105,7 +110,7 @@ aggregateMOMO <- function(mi, group, compatibility.mode=FALSE) {
     }
   }
 
-  aggr5[aggr5$wk>=(attr(aggr5, "WEEK") - attr(mi, "histPer")) & aggr5$wk<=(attr(aggr5, "WEEK")+1), ]
+  aggr5[aggr5$wk>=(momoAttr$WEEK - momoAttr$histPer) & aggr5$wk<=(momoAttr$WEEK+1), ]
 
 }
 

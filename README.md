@@ -5,6 +5,12 @@
 #
 This is a full port of A-MOMOpack (the code used to analyze mortality data for the [EuroMOMO project](www.euromomo.eu)) from Stata to R.
 
+# News
+
+## 2018-08-23
+
+The new delay correction that Jens developed in December 2017 is now installed. This can be chosen by `delayVersion="2017-12"`, or the original delay correction can be chosen by `delayVersion="original"`.
+
 # How to install
 
 Please use my [drat](https://github.com/eddelbuettel/drat) repository to install this package from, as the drat repository only contains package versions that have passed [testing](http://travis-ci.org/raubreywhite/MOMOpack-for-R).
@@ -35,6 +41,7 @@ SetOpts(
     useAUTOMN = TRUE,
     datesISO = FALSE,
     plotGraphs = TRUE,
+    delayVersion = "2017-12",
     MOMOgroups = list(
       "0to4" =  "age >= 0 & age <=4",
       "5to14" = "age >= 5 & age <=14",

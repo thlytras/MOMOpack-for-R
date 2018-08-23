@@ -16,7 +16,8 @@ Imports:
   grDevices,
   graphics,
   utils,
-  glm2
+  glm2,
+  MASS
 Suggests:
   testthat,
     knitr,

@@ -243,7 +243,7 @@ delayMOMO_2017_12 <- function(aggr, zvalue=1.96) {
 
   for(r in 0:momoAttr$delayCorr){
     var <- sprintf("pred%s",r)
-    aggr[delay==r,pred:=get(var)]
+    #aggr[delay==r,pred:=get(var)]
     aggr[,(var):=NULL]
 
     var <- sprintf("UPI%s",r)

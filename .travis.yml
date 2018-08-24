@@ -3,12 +3,13 @@ cache: packages
 r_packages:
 - covr
 - drat
+- roxygen2
 before_install:
 - bash make.sh
 after_success:
 - Rscript -e 'library(covr); codecov()'
-- test $TRAVIS_PULL_REQUEST == "false" && 
-  test $TRAVIS_BRANCH == "master" && 
+- test $TRAVIS_PULL_REQUEST == "false" &&
+  test $TRAVIS_BRANCH == "master" &&
   bash deploy.sh
 env:
   global:

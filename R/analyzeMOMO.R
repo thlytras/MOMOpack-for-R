@@ -24,8 +24,11 @@ analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN
     groupfile <- mi[mi[,sprintf("GRP%s", group)] & !is.na(mi[,sprintf("GRP%s", group)]),]
   }
   aggr <- aggregateMOMO(groupfile, group, compatibility.mode)
+  dataExport$aggr <- aggr
   aggr_fullDelay <- delayMOMO(aggr, zvalue)
+  dataExport$aggr_fullDelay <- aggr_fullDelay
   aggr_delay <- trimDelayMOMO(aggr_fullDelay)
+  dataExport$aggr_delay <- aggr_delay
   final <- excessMOMO(aggr=aggr_delay, version, useAUTOMN, USEglm2, zvalue)
 
   toSave <- final

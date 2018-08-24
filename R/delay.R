@@ -279,9 +279,12 @@ delayMOMO_richard_internal <- function(runData,zvalue=1.96){
   modellingWeeks <- momoAttr$PRWEEK:momoAttr$WEEK2
   runData <- copy(runData)
   for(r in 0:momoAttr$delayCorr){
-    form <- sprintf("nb~WR%s",r)
+    form <- "nb~closed+YoDi"
+    for(k in 0:r){
+      form <- sprintf("%s+%ssplines::ns(WR%s,3)",k)
+    }
     fit <- glm(as.formula(form),data=runData[runData$wk %in% modellingWeeks],family="poisson")
-
+    summary(fit)
     od <- max(1,sum(fit$weights * fit$residuals^2)/fit$df.r)
 
     p <- predict(fit,newdata=runData,type="response")

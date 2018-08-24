@@ -1,0 +1,36 @@
+---
+title: "Basic Example"
+author: "Richard White"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Basic code is provided below that will run MoMo on Danish data that has been included in the package.
+
+```
+SetOpts(
+    DoA=as.Date("2013-12-31"),
+    DoPR=as.Date("2008-1-1"),
+    WStart=1,
+    WEnd=52,
+    country = "Denmark",
+    source = "SSI",
+    MFILE = "DoD_DoR.txt",
+    HFILE = "holidays.txt",
+    INPUTDIR = system.file("testdata",package="momo"),
+    WDIR = tempdir(),
+    back = 3,
+    WWW = 290,
+    Ysum = 2013,
+    Wsum = 40,
+    USEglm2 = TRUE,
+    useAUTOMN = TRUE,
+    datesISO = FALSE,
+    plotGraphs = TRUE)
+
+RunMoMo()
+```

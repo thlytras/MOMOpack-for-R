@@ -1,5 +1,7 @@
 language: r
 cache: packages
+r_check_args:
+- "--no-vignettes"
 r_packages:
 - covr
 - drat

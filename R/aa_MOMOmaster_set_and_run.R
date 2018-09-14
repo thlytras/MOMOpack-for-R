@@ -64,7 +64,7 @@ SetOpts <- function(
   ),
   verbose=TRUE){
 
-  if(!delayVersion %in% c("original","2017-12","richard")) stop("delayVersion not 'original' or '2017-12'")
+  if(!delayVersion %in% opts$delayVersionAvailable) stop("delayVersion not 'original' or '2017-12'")
 
   opts$setByUser <- TRUE
 

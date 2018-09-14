@@ -4,7 +4,7 @@
 \name{opts}
 \alias{opts}
 \title{Placeholder list for all the following options}
-\format{An object of class \code{environment} of length 25.}
+\format{An object of class \code{environment} of length 27.}
 \usage{
 opts
 }

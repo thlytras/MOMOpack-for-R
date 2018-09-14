@@ -16,6 +16,8 @@ momoAttr <- new.env(parent = emptyenv())
 #' @export opts
 opts <- new.env(parent = emptyenv())
 
+opts$delayVersionAvailable <- c("original","original+season","2017-12","richard")
+
 opts$setByUser <- FALSE
 
 # CHANGE THE INFORMATION BETWEEN BRACKETS
@@ -105,6 +107,7 @@ opts$plotGraphs <- TRUE
 # Delay version
 # Either "original" or "2017-12"
 opts$delayVersion <- "original"
+opts$delay2Version <- "none"
 
 
 # ******** DO NOT MODIFY BELOW THIS LINE ********

@@ -1,7 +1,7 @@
 # MOMOpack for R
 
-# Originally MOMOpack V 4.3 for Stata, 
-# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO. 
+# Originally MOMOpack V 4.3 for Stata,
+# created by Bernadette Gergonne, SSI-EpiLife for Euro MOMO.
 # Ported into R by Theodore Lytras <thlytras@gmail.com>
 
 CUSUMgraphsMOMO <- function(output, dirs, group=NA) {
@@ -14,8 +14,9 @@ CUSUMgraphsMOMO <- function(output, dirs, group=NA) {
   lapply(output, function(x) {
 
     final <- transferMOMOattributes(subset(x$finalDataset, season>=2006), x$finalDataset)
+    GROUP <- final$GROUP
 
-    final$Sweek[final$Sweek >= 27 & final$YoDi !=2010] <- final$Sweek[final$Sweek >= 27 & final$YoDi !=2010] + 1 
+    final$Sweek[final$Sweek >= 27 & final$YoDi !=2010] <- final$Sweek[final$Sweek >= 27 & final$YoDi !=2010] + 1
     final$Sweek[final$WoDi == 53] <- 27
 
     # Cumulative sums
@@ -35,8 +36,8 @@ CUSUMgraphsMOMO <- function(output, dirs, group=NA) {
 
 
     # Helper function for all the graphs below
-    plotCusumGraph <- function(data, y, x="wk", xtext="wk2", col=rainbow(length(y)), 
-	    note=NA, ylab=NA, lwd=1, lty=1, legend=NULL, tbmar=c(2,8), yshifts=c(1.2, 6), 
+    plotCusumGraph <- function(data, y, x="wk", xtext="wk2", col=rainbow(length(y)),
+	    note=NA, ylab=NA, lwd=1, lty=1, legend=NULL, tbmar=c(2,8), yshifts=c(1.2, 6),
 	    plotCUM=NA, baseline=FALSE, cexf=1)
     {
       # Make sure agruments lwd, point, line are sane
@@ -50,7 +51,7 @@ CUSUMgraphsMOMO <- function(output, dirs, group=NA) {
       # Create the plot
       par(mar=c(tbmar[2],8,tbmar[1],2))
       with(data, {
-	plot(0, type="n", xlim=range(xwk), 
+	plot(0, type="n", xlim=range(xwk),
 	  ylim=c(min(0, min(data[,y], na.rm=TRUE)) , max(data[,y], na.rm=TRUE)),
 	  xlab=NA, ylab=NA, xaxt="n")
 	axis(1, at=xwk[grep("-01|-26", xlabels)], labels=xlabels[grep("-01|-26", xlabels)])
@@ -63,30 +64,30 @@ CUSUMgraphsMOMO <- function(output, dirs, group=NA) {
 	mtext("Week number", side=1, line=2, cex=1*cexf)
 	mtext(ylab, side=2, line=2.5, cex=2.5*cexf)
 	mtext(note, side=1, cex=1.3*cexf, line=yshifts[2], adj=0)
-	if (!is.null(legend)) legend("top", legend=legend, col=col, inset=c(0,yshifts[1]), 
+	if (!is.null(legend)) legend("top", legend=legend, col=col, inset=c(0,yshifts[1]),
 	      xpd=TRUE, ncol=min(3,length(legend)), seg.len=4, lwd=lwd, lty=lty)
       })
     }
 
 
 
-    png(sprintf("%s/GRAPH-COMBINED-CUSUM-%s-%s-%s-%s.png", dirs$CUMULATIVE, attr(final, "country"), attr(final, "group"), attr(final, "YOSI"), attr(final, "WOSI")), 
+    png(sprintf("%s/GRAPH-COMBINED-CUSUM-%s-%s-%s-%s.png", dirs$CUMULATIVE, momoAttr$country, GROUP, momoAttr$YOSI, momoAttr$WOSI),
 	width=3750, height=5000, pointsize=21, res=144)
     par(mfrow=c(5,1), oma=c(1,0,9,0))
 
     # graph CUSUM
     plotCusumGraph(data=subset(final, COND6==1), cex=0.67,
 	y=c("CUSUM", "h"),lwd=3, lty=1, tbmar=c(2,9),
-	ylab="Standardised\nCUSUM", plotCUM=attr(final, "CUM"),
-	note=paste("The orange line represent the starting week of the CUSUM.", 
-	    "Current parameters set to detect a sustained shift of 1.5 SD over 3 weeks", 
+	ylab="Standardised\nCUSUM", plotCUM=momoAttr$CUM,
+	note=paste("The orange line represent the starting week of the CUSUM.",
+	    "Current parameters set to detect a sustained shift of 1.5 SD over 3 weeks",
 	    "with 5 % of false alarm = one false alarm randomly every 20 weeks", sep="\n"),
 	col = c("navyblue", "red", "seagreen", "orange2"),
 	legend = c("CUSUM", "decision limit"))
 
     # graph series
     plotCusumGraph(data=subset(final, COND6==1), cex=0.67,
-	y=c("nbc", "DOTm", "DOTc", "Pnb", names(final)[grep("UPIb", names(final))]),lwd=3, lty=1, 
+	y=c("nbc", "DOTm", "DOTc", "Pnb", names(final)[grep("UPIb", names(final))]),lwd=3, lty=1,
 	ylab="Mortality\nseries",
 	col = c("navyblue", "slateblue", "seagreen", "orange2", paste("yellow", c(3:1,3:1,3:1)[1:length(grep("UPIb", names(final)))], sep="")),
 	legend = c("Number of deaths", "Data used in the model", "Corrected number of deaths", "Baseline",
@@ -98,16 +99,16 @@ CUSUMgraphsMOMO <- function(output, dirs, group=NA) {
 
     # graph Z-score
     plotCusumGraph(data=subset(final, COND6==1), cex=0.67,
-	y=c("zscore", "DOTzm", "DOTz"), lwd=3, lty=1, 
+	y=c("zscore", "DOTzm", "DOTz"), lwd=3, lty=1,
 	ylab="Z-score\nseries",
-	col = c("navyblue", "slateblue", "seagreen"), baseline=TRUE, 
+	col = c("navyblue", "slateblue", "seagreen"), baseline=TRUE,
 	legend = c("Z-score", "Z-score on data used in the model", "Z-score on corrected data"))
 
     # graph cumulative Z-score
     plotCusumGraph(data=subset(final, COND6==1), cex=0.67,
 	y="Zsum", lwd=3, lty=1, ylab="Cumulative\nZ-score", col="navyblue", baseline=TRUE, tbmar=c(3,5))
 
-    mtext(sprintf("ANALYSIS CUMULATIVE SUMS\n%s-%s years-%s-%s\nCUSUM set up at 0 week %s-%s", attr(final, "country"), attr(final, "group"), attr(final, "YOSI"), attr(final, "WOSI"), attr(final, "YOSI"), attr(final, "WOSI")),
+    mtext(sprintf("ANALYSIS CUMULATIVE SUMS\n%s-%s years-%s-%s\nCUSUM set up at 0 week %s-%s", momoAttr$country, GROUP, momoAttr$YOSI, momoAttr$WOSI, momoAttr$YOSI, momoAttr$WOSI),
 	side=3, outer=TRUE, cex=2)
 
     dev.off()

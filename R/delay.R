@@ -251,24 +251,25 @@ delayMOMO_2017_12 <- function(aggr, zvalue=1.96) {
 
     var <- sprintf("UPI%s",r)
     aggr[delay==r,UPIc:=get(var)]
-    aggr[,(var):=NULL]
+    #aggr[,(var):=NULL]
 
     var <- sprintf("LPI%s",r)
     aggr[delay==r,LPIc:=get(var)]
-    aggr[,(var):=NULL]
+    #aggr[,(var):=NULL]
 
     var <- sprintf("UCI%s",r)
     aggr[delay==r,UCIc:=get(var)]
-    aggr[,(var):=NULL]
+    #aggr[,(var):=NULL]
 
     var <- sprintf("LCI%s",r)
     aggr[delay==r,LCIc:=get(var)]
-    aggr[,(var):=NULL]
+    #aggr[,(var):=NULL]
   }
 
   #** we generate the CORRECTED number of death
-  aggr[wk<momoAttr$WEEK2,nbc:=nb]
-  aggr[momoAttr$WEEK2 <= wk & wk<= momoAttr$WEEK, nbc:=pmax(0,pred,nb)]
+  # maybe this is incorrect?
+  aggr[wk<=momoAttr$WEEK2,nbc:=nb]
+  aggr[momoAttr$WEEK2 < wk & wk<= momoAttr$WEEK, nbc:=pmax(0,pred,nb)]
 
   nam <- names(aggrMaster)[stringr::str_detect(names(aggrMaster),"^WR")]
   retval <- merge(aggr,aggrMaster[,c("YoDi","WoDi",nam)],by=c("YoDi","WoDi"))
@@ -278,22 +279,159 @@ delayMOMO_2017_12 <- function(aggr, zvalue=1.96) {
   return(retval)
 }
 
-delayMOMO_richard_internal <- function(runData,zvalue=1.96){
-  modellingWeeks <- momoAttr$PRWEEK:momoAttr$WEEK2
-  runData <- copy(runData)
-  for(r in 0:momoAttr$delayCorr){
-    form <- "nb~closed+YoDi"
-    for(k in 0:r){
-      form <- sprintf("%s+%ssplines::ns(WR%s,3)",k)
+delayMOMO_original_plus_season <- function(aggr, zvalue=1.96) {
+  aggr <- aggr[order(aggr$wk),]
+
+  #* Drop obs in week of aggregation # NEW!!
+  aggr <- aggr[-nrow(aggr),]
+
+  # the period of registration for a death week XX
+  aggr$closed0 <- aggr$closed + vecshift(aggr$closedA, 1)
+  for (VV in 1:attr(aggr, "delayCorr")) {
+    aggr[[paste("closed", VV, sep="")]] <- aggr[[paste("closed", VV-1, sep="")]] + vecshift(aggr$closed0, -VV)
+  }
+
+  aggr$sin52 <- sin(aggr$WoDi*2*pi/52)
+  aggr$cos52 <- cos(aggr$WoDi*2*pi/52)
+
+  aggr$sin26 <- sin(aggr$WoDi*2*pi/26)
+  aggr$cos26 <- cos(aggr$WoDi*2*pi/26)
+
+  # CORRECTION FOR DELAY
+  # FIRST we model what we know about the previous week.
+  aggr$pred <- NA
+  aggr$UCIc <- NA
+  aggr$LCIc <- NA
+  aggr$UPIc <- NA
+  aggr$LPIc <- NA
+  aggr$GROUP <- attr(aggr, "group")
+
+  for (XX in 0:attr(aggr, "delayCorr")) {
+    aggr[[paste("CCC", XX, sep="")]] <- vecshift(aggr[[paste("closed", XX, sep="")]], XX)
+    aggr[[paste("a", XX, sep="")]] <- ifelse((aggr$wk>attr(aggr, "PRWEEK") & aggr$wk<=attr(aggr, "WEEK2")), (aggr[[paste("WR", XX, sep="")]]/aggr$nb), NA)
+
+    m1 <- suppressWarnings(glm(as.formula(paste("a", XX, " ~ CCC", XX, " + wk", sep="")), data=subset(aggr, wk>attr(aggr, "PRWEEK") & wk<attr(aggr, "WEEK2")), family=binomial))
+    aggr[[paste("Pa", XX, sep="")]] <- predict(m1, aggr, type="response")
+    aggr[[paste("Pa", XX, sep="")]][which(aggr$wk<=attr(aggr, "PRWEEK") | aggr$wk>attr(aggr, "WEEK"))] <- NA
+
+    aggr[[paste("temp", XX, sep="")]] <- aggr[[paste("WR", XX, sep="")]] / aggr[[paste("Pa", XX, sep="")]]
+
+    m1 <- glm(as.formula(paste("nb2 ~ sin52 + cos52 + WR", XX, " + Pa", XX, " + wk", sep="")), data=subset(aggr, wk>attr(aggr, "PRWEEK") & wk<attr(aggr, "WEEK2")), family=poisson)
+    od <- max(1,sum(m1$weights * m1$residuals^2)/m1$df.r)
+    if (od > 1) m1 <- glm(as.formula(paste("nb2 ~ sin52 + cos52 + WR", XX, " + Pa", XX, " + wk", sep="")), data=subset(aggr, wk>attr(aggr, "PRWEEK") & wk<attr(aggr, "WEEK2")), family=quasipoisson)
+
+    tryCatch(
+      aggr[[paste("pred", XX, sep="")]] <- predict(m1, aggr, type="response"),
+      warning = function(w)
+        if (conditionMessage(w)=="prediction from a rank-deficient fit may be misleading")
+          warning(   # Giving a more informative warning
+            "In group '", attr(aggr, "group"), "', the delay Poisson model fit for lag ", XX, " week(s)\n",
+            "        is rank deficient. Prediction may be misleading.", call.=FALSE) else warning(w)
+    )
+    aggr[[paste("pred", XX, sep="")]][aggr$wk<=attr(aggr, "PRWEEK") | aggr$wk>attr(aggr, "WEEK")-XX] <- NA
+
+    tryCatch(
+      aggr[[paste("stdp", XX, sep="")]] <- predict(m1, aggr, se.fit=TRUE)$se.fit,
+      warning = function(w)
+        # If we have the same warning about rank deficiency as above, there's no reason to print it twice
+        if (conditionMessage(w)!="prediction from a rank-deficient fit may be misleading")
+          warning(w)
+    )
+    aggr[[paste("stdp", XX, sep="")]][aggr$wk<=attr(aggr, "PRWEEK") | aggr$wk>attr(aggr, "WEEK")-XX] <- NA
+
+    aggr[[paste("N", XX, sep="")]] <- sum(!is.na(aggr[[paste("stdp", XX, sep="")]]))
+    aggr[[paste("temp", XX, sep="")]] <- NULL
+
+    # Prediction Interval
+    aggr[[paste("UPI", XX, sep="")]] <- (aggr[[paste("pred", XX, sep="")]]^(2/3) + zvalue*((4/9)*(aggr[[paste("pred", XX, sep="")]]^(1/3))*(od+(aggr[[paste("stdp", XX, sep="")]]^2)*(aggr[[paste("pred", XX, sep="")]])))^(1/2))^(3/2)
+    aggr[[paste("LPI", XX, sep="")]] <- (aggr[[paste("pred", XX, sep="")]]^(2/3) - zvalue*((4/9)*(aggr[[paste("pred", XX, sep="")]]^(1/3))*(od+(aggr[[paste("stdp", XX, sep="")]]^2)*(aggr[[paste("pred", XX, sep="")]])))^(1/2))^(3/2)
+
+    aggr[[paste("UCI", XX, sep="")]] <- aggr[[paste("pred", XX, sep="")]] + zvalue*aggr[[paste("stdp", XX, sep="")]]
+    aggr[[paste("LCI", XX, sep="")]] <- aggr[[paste("pred", XX, sep="")]] - zvalue*aggr[[paste("stdp", XX, sep="")]]
+
+    aggr$pred[aggr$wk == attr(aggr, "WEEK")-XX] <- aggr[[paste("pred", XX, sep="")]][aggr$wk == attr(aggr, "WEEK")-XX]
+    aggr$UCIc[aggr$wk == attr(aggr, "WEEK")-XX] <- aggr[[paste("UCI", XX, sep="")]][aggr$wk == attr(aggr, "WEEK")-XX]
+    aggr$LCIc[aggr$wk == attr(aggr, "WEEK")-XX] <- aggr[[paste("LCI", XX, sep="")]][aggr$wk == attr(aggr, "WEEK")-XX]
+    aggr$UPIc[aggr$wk == attr(aggr, "WEEK")-XX] <- aggr[[paste("UPI", XX, sep="")]][aggr$wk == attr(aggr, "WEEK")-XX]
+    aggr$LPIc[aggr$wk == attr(aggr, "WEEK")-XX] <- aggr[[paste("LPI", XX, sep="")]][aggr$wk == attr(aggr, "WEEK")-XX]
+
+    aggr[[paste("UCI", XX, sep="")]][aggr$wk < attr(aggr, "WEEK2")] <- NA
+    aggr[[paste("LCI", XX, sep="")]][aggr$wk < attr(aggr, "WEEK2")] <- NA
+    aggr[[paste("UPI", XX, sep="")]][aggr$wk < attr(aggr, "WEEK2")] <- NA
+    aggr[[paste("LPI", XX, sep="")]][aggr$wk < attr(aggr, "WEEK2")] <- NA
+
+  }
+
+
+  # we generate the CORRECTED number of death
+  aggr$nbc[aggr$wk < attr(aggr, "WEEK2")] <- aggr$nb[aggr$wk < attr(aggr, "WEEK2")]
+  aggr$nbc[aggr$wk >= attr(aggr, "WEEK2") & aggr$wk <= attr(aggr, "WEEK")] <- pmax(aggr$pred[aggr$wk >= attr(aggr, "WEEK2") & aggr$wk <= attr(aggr, "WEEK")], aggr$nb[aggr$wk >= attr(aggr, "WEEK2") & aggr$wk <= attr(aggr, "WEEK")], na.rm=TRUE)
+
+  return(aggr)
+}
+
+#' @import glmnet
+#' @importFrom MASS polr
+delayMOMO_richard <- function(aggr, zvalue=1.96) {
+  #aggr <- readRDS("test.RDS")
+  aggrMaster <- copy(aggr)
+  setDT(aggr)
+  aggr <- aggr[order(aggr$wk),]
+
+  #* Drop obs in week of aggregation
+  aggr <- aggr[-nrow(aggr),]
+
+  modellingWeeks <- momo::momoAttr$PRWEEK:momo::momoAttr$WEEK2
+  modellingWeeks <- modellingWeeks[modellingWeeks > min(aggr$wk)+momo::momoAttr$delayCorr*2]
+
+  aggr$sin52 <- sin(aggr$WoDi*2*pi/52)
+  aggr$cos52 <- cos(aggr$WoDi*2*pi/52)
+
+  aggr$sin26 <- sin(aggr$WoDi*2*pi/26)
+  aggr$cos26 <- cos(aggr$WoDi*2*pi/26)
+
+  aggr[,diff_WR1_minus_WR0:=WR1-WR0]
+
+  for(r in 0:(momo::momoAttr$delayCorr*2)){
+    aggr[,(sprintf("WR0_lag%s",r)):=shift(WR0,n=r)]
+    aggr[,(sprintf("WR1_lag%s",r)):=shift(WR1,n=r)]
+    aggr[,(sprintf("WR2_lag%s",r)):=shift(WR2,n=r)]
+
+    aggr[,(sprintf("diff_WR1_minus_WR0_lag%s",r)):=shift(diff_WR1_minus_WR0,n=r)]
+  }
+
+  WR <- c()
+  for(r in 0:momo::momoAttr$delayCorr){
+    WR <- c(WR,sprintf("WR%s",r))
+    WR0Lags <- WR1Lags <- diff_WR1_minus_WR0Lags <- c()
+    for(rx in 1:momo::momoAttr$delayCorr) WR0Lags <- c(WR0Lags,sprintf("WR0_lag%s",rx))
+    for(rx in 1:momo::momoAttr$delayCorr) WR1Lags <- c(WR1Lags,sprintf("WR1_lag%s",rx))
+    for(rx in 1:momo::momoAttr$delayCorr) diff_WR1_minus_WR0Lags <- c(diff_WR1_minus_WR0Lags,sprintf("diff_WR1_minus_WR0_lag%s",rx))
+    #WR1Lags <- c(WR1Lags,sprintf("WR1_lag%s",r+1))
+    #WR2Lags <- c(WR2Lags,sprintf("WR2_lag%s",r))
+
+    xVars <- c("sin52","cos52","sin26","cos26",WR,WR0Lags,WR1Lags,diff_WR1_minus_WR0Lags)
+
+    x <- as.matrix(aggr[,xVars,with=F])
+    xTest <- as.matrix(aggr[aggr$wk %in% modellingWeeks,xVars,with=F])
+    y <- aggr[aggr$wk %in% modellingWeeks,]$nb
+
+    s <- ScaleCreate(xTest)
+
+    cvm <- c()
+    for(a in 0:10){
+      fit <- glmnet::cv.glmnet(x=ScaleApply(xTest,s),y=y,family="gaussian",alpha=a/10)
+      cvm <- c(cvm,min(fit$cvm))
     }
-    fit <- glm(as.formula(form),data=runData[runData$wk %in% modellingWeeks],family="poisson")
-    summary(fit)
-    od <- max(1,sum(fit$weights * fit$residuals^2)/fit$df.r)
+    print(cvm)
+    chosenAlplha <- which(cvm==min(cvm))/10
+    fit <- glmnet::cv.glmnet(x=ScaleApply(xTest,s),y=y,family="gaussian",alpha=chosenAlplha)
 
-    p <- predict(fit,newdata=runData,type="response")
-    stdp <- predict(fit,newdata=runData,se.fit=T)$se.fit
+    print(r)
+    print(coef(fit))
+    p <- predict(fit,ScaleApply(x,s))
 
-    predvar <- sprintf("pred%s",r)
+    aggr[,(sprintf("pred%s",r)):=p]
 
     UPIvar <- sprintf("UPI%s",r)
     LPIvar <- sprintf("LPI%s",r)
@@ -301,74 +439,25 @@ delayMOMO_richard_internal <- function(runData,zvalue=1.96){
     UCIvar <- sprintf("UCI%s",r)
     LCIvar <- sprintf("LCI%s",r)
 
-    runData[,(predvar):=p]
+    aggr[,(UPIvar):=as.numeric(NA)]
+    aggr[,(LPIvar):=as.numeric(NA)]
 
-    runData[,(UPIvar):=(p^(2/3)+ zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
-    runData[,(LPIvar):=(p^(2/3)- zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
-
-    runData[,(UCIvar):=p + zvalue*stdp]
-    runData[,(LCIvar):=p - zvalue*stdp]
-
-    var <- sprintf("p%s",r)
-    runData[,(var):=NULL]
+    aggr[,(UCIvar):=as.numeric(NA)]
+    aggr[,(LCIvar):=as.numeric(NA)]
   }
-  return(runData)
-}
-
-#' @importFrom MASS polr
-delayMOMO_richard <- function(aggr, zvalue=1.96) {
-  #aggr <- readRDS("test.RDS")
-  aggrMaster <- copy(aggr)
-  aggr <- aggr[order(aggr$wk),]
-
-  #* Drop obs in week of aggregation
-  aggr <- aggr[-nrow(aggr),]
-
-  setDT(aggr)
-  modellingPeriods <- list(
-    "summer"=21:39,
-    "winter"=c(1:20,40:52)
-  )
-  retval <- vector("list",length=length(modellingPeriods))
-  for(i in 1:length(modellingPeriods)){
-    retval[[i]] <- delayMOMO_richard_internal(runData=aggr[WoDi %in% modellingPeriods[[i]]],zvalue=zvalue)
-  }
-  aggr <- rbindlist(retval)
-  setorder(aggr,YoDi,WoDi)
 
   aggr[,delay:=max(wk)-wk]
-
-  aggr[,pred:=as.numeric(NA)]
-  aggr[,UPIc:=as.numeric(NA)]
-  aggr[,LPIc:=as.numeric(NA)]
-  aggr[,UCIc:=as.numeric(NA)]
-  aggr[,LCIc:=as.numeric(NA)]
-
-  for(r in 0:momoAttr$delayCorr){
-    var <- sprintf("pred%s",r)
-    aggr[delay==r,pred:=get(var)]
-    aggr[,(var):=NULL]
-
-    var <- sprintf("UPI%s",r)
-    aggr[delay==r,UPIc:=get(var)]
-    aggr[,(var):=NULL]
-
-    var <- sprintf("LPI%s",r)
-    aggr[delay==r,LPIc:=get(var)]
-    aggr[,(var):=NULL]
-
-    var <- sprintf("UCI%s",r)
-    aggr[delay==r,UCIc:=get(var)]
-    aggr[,(var):=NULL]
-
-    var <- sprintf("LCI%s",r)
-    aggr[delay==r,LCIc:=get(var)]
-    aggr[,(var):=NULL]
+  for(r in 0:momo::momoAttr$delayCorr){
+    aggr[delay==r,pred:=get(sprintf("pred%s",r))]
+    aggr[delay==r,UPIc:=get(sprintf("UPI%s",r))]
+    aggr[delay==r,LPIc:=get(sprintf("LPI%s",r))]
+    aggr[delay==r,UCIc:=get(sprintf("UCI%s",r))]
+    aggr[delay==r,LCIc:=get(sprintf("LCI%s",r))]
   }
-
   #** we generate the CORRECTED number of death
-  aggr[wk<momoAttr$WEEK2,nbc:=nb]
-  aggr[momoAttr$WEEK2 <= wk & wk<= momoAttr$WEEK, nbc:=pmax(0,pred,nb)]
+  print(1)
+  aggr[wk<=momoAttr$WEEK2,nbc:=nb]
+  aggr[momoAttr$WEEK2 < wk & wk<= momoAttr$WEEK, nbc:=pmax(0,pred,nb)]
 
   aggr[,GROUP:=momoAttr$group]
 
@@ -379,6 +468,8 @@ delayMOMO_richard <- function(aggr, zvalue=1.96) {
 delayMOMO <- function(aggr, zvalue=1.96){
   if(opts$delayVersion=="original"){
     delayMOMO_original(aggr=aggr, zvalue=zvalue)
+  } else if(opts$delayVersion=="original+season"){
+    delayMOMO_original_plus_season(aggr=aggr, zvalue=zvalue)
   } else if(opts$delayVersion=="2017-12"){
     delayMOMO_2017_12(aggr=aggr, zvalue=zvalue)
   } else if(opts$delayVersion=="richard"){
@@ -387,18 +478,10 @@ delayMOMO <- function(aggr, zvalue=1.96){
 }
 
 
-
 trimDelayMOMO <- function(aggr) {
-  for (XX in 1:momoAttr$delayCorr) {
-    aggr[[paste("pred", XX, sep="")]] <- NULL
-    aggr[[paste("UCI", XX, sep="")]] <- NULL
-    aggr[[paste("LCI", XX, sep="")]] <- NULL
-    aggr[[paste("UPI", XX, sep="")]] <- NULL
-    aggr[[paste("LPI", XX, sep="")]] <- NULL
-  }
-  aggr$nbc[is.na(aggr$nbc)] <- 0
+  predNames <- names(aggr)[stringr::str_detect(names(aggr),"^pred")]
 
-  ret <- aggr[,c("GROUP", "WoDi", "YoDi", "wk", "wk2", "nb", "nb2", "nbr", "nbc", "pred", "UCIc", "LCIc", "UPIc", "LPIc")]
+  ret <- aggr[,c("GROUP", "WoDi", "YoDi", "wk", "wk2", "nb", "nb2", "nbr", "nbc", predNames, "UCIc", "LCIc", "UPIc", "LPIc")]
 
   # We must preserve the attributes we need
   transferMOMOattributes(ret, aggr)

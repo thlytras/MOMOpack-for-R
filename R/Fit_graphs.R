@@ -18,13 +18,14 @@ fitGraphsMOMO <- function(output, dirs, group=NA) {
 
   lapply(output, function(x) {
     final <- x$finalDataset
+    GROUP <- final$GROUP
 
     xwk <- with(final, (floor(min(wk)/50)*50):(ceiling(max(wk)/50)*50))
     xlabels <- as.character(final$wk2[match(xwk, as.integer(final$wk2))])
 
     # TEST MODEL FIT
 
-    png(sprintf("%s/GRAPH-FIT-%s-%s-%s-%s.png", dirs$FIT, momoAttr$country, momoAttr$group, momoAttr$YOSI, momoAttr$WOSI),
+    png(sprintf("%s/GRAPH-FIT-%s-%s-%s-%s.png", dirs$FIT, momoAttr$country, GROUP, momoAttr$YOSI, momoAttr$WOSI),
 	width=4400, height=5000, pointsize=21, res=144)
     par(oma=c(0,6,10,0))
     layout(matrix(c(1:10, rep(0, 2), 11:18, rep(0, 4)),ncol=4, nrow=6))
@@ -64,9 +65,9 @@ fitGraphsMOMO <- function(output, dirs, group=NA) {
     mtext("PERIODOGRAM", side=2, cex=1.5, line=5, xpd=TRUE)
 
     # according to the prediction
-    with(subset(final, wk <= WEEK), {
+    with(subset(final, wk <= momoAttr$WEEK), {
       plot(y=get(DATA), x=get(MODEL), pch=20, xlab=NA, ylab=NA, col="navyblue", bty="l")
-      points(y=predict(lm(get(DATA) ~ get(MODEL)), newdata=subset(final, wk <= attr(final, "WEEK"))), x=get(MODEL),
+      points(y=predict(lm(get(DATA) ~ get(MODEL)), newdata=subset(final, wk <= momoAttr$WEEK)), x=get(MODEL),
 	type="l", col="darkred", lwd=3)
     })
     mtext("SERIES v MODEL\n(variance stability)", side=2, cex=1.5, line=4, xpd=TRUE)
@@ -197,7 +198,7 @@ fitGraphsMOMO <- function(output, dirs, group=NA) {
     })
 
 
-    mtext(sprintf("Analysis Model Fit\n%s-%s years-%s-%s", momoAttr$country, momoAttr$group, momoAttr$YOSI, momoAttr$WOSI),
+    mtext(sprintf("Analysis Model Fit\n%s-%s years-%s-%s", momoAttr$country, GROUP, momoAttr$YOSI, momoAttr$WOSI),
 	side=3, outer=TRUE, cex=2, line=3)
 
     dev.off()

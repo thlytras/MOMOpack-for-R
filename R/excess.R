@@ -110,7 +110,16 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
     }
   }
 
+  # creating zscores
   aggr$zscore <- (aggr$nbc^(2/3) - aggr$Pnb^(2/3)) / ((4/9)*(aggr$Pnb^(1/3))*(od+aggr$Pnb*(aggr$stdp^2)))^(1/2)
+  extraVarList <- c()
+  for(r in 0:momo::momoAttr$delayCorr){
+    predVar <- sprintf("pred%s",r)
+    zscoreVar <- sprintf("predzscore%s",r)
+    extraVarList <- c(extraVarList,predVar,zscoreVar)
+
+    aggr[,zscoreVar] <- (aggr[,predVar]^(2/3) - aggr$Pnb^(2/3)) / ((4/9)*(aggr$Pnb^(1/3))*(od+aggr$Pnb*(aggr$stdp^2)))^(1/2)
+  }
 
   aggr$UCIb <- aggr$Pnb + zvalue*aggr$stdp
   aggr$LCIb <- aggr$Pnb - zvalue*aggr$stdp
@@ -178,7 +187,7 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
     names(aggr)[grep("UPIb", names(aggr), fixed=TRUE)], "LCIb", "UCIb", "excess",
     "UCIe", "LCIe", "resi", "zscore", "DOTm", "DOTc", "DOTb", "DOTz", "DOTzm",
     "COND6", "CONDmodel", "Spring", c("Autumn","Automn")[useAUTOMN+1],
-    "CUSUM", "FLAG", "k", "ARL0", "h")]
+    "CUSUM", "FLAG", "k", "ARL0", "h",extraVarList)]
   #transferMOMOattributes(ret, aggr)
   return(ret)
 }

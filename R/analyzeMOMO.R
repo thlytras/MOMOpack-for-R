@@ -31,7 +31,12 @@ analyzeMOMOgroup <- function(mi, group, version="v4-3", datesISO=TRUE, useAUTOMN
   dataExport$aggr_delay <- aggr_delay
   final <- excessMOMO(aggr=aggr_delay, version, useAUTOMN, USEglm2, zvalue)
 
+  n <- names(final)
+  extraVars <- n[stringr::str_detect(n,"^pred")]
+  keepVars <- n[!n %in% extraVars]
+
   toSave <- final
+  final <- final[,keepVars]
 
   for(Z in seq(4,20,2)) {
     # We drop the variables UPI if they are not crossed by the data

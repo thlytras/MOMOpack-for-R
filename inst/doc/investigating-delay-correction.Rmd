@@ -1,6 +1,6 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "Investigating delay correction"
+author: "Richard White"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -18,10 +18,45 @@ knitr::opts_chunk$set(
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
-```{r eval=FALSE, include=FALSE}
+```{r eval=TRUE, include=FALSE}
 devtools::load_all()
 library(data.table)
+library(ggplot2)
+
+# Functions
+TP <- function(var){
+  sum(var=="TP",na.rm=T)
+}
+
+FP <- function(var){
+  sum(var=="FP",na.rm=T)
+}
+
+TN <- function(var){
+  sum(var=="TN",na.rm=T)
+}
+
+FN <- function(var){
+  sum(var=="FN",na.rm=T)
+}
+
+PPV <- function(var){
+  return(TP(var)/(TP(var)+FP(var)))
+}
+
+NPV <- function(var){
+  return(TN(var)/(TN(var)+FN(var)))
+}
+
+SENS <- function(var){
+  return(TP(var)/(TP(var)+FN(var)))
+}
+
+SPEC <- function(var){
+  return(TN(var)/(TN(var)+FP(var)))
+}
+
+
 masterData <- fread("/docs/dashboards/data_raw/normomo/FHIDOD2_20180814.txt")
 masterData[,DoD:=as.Date(as.character(DODS_DATO),format="%Y%m%d")]
 masterData[,DoR:=as.Date(as.character(ENDR_DATO),format="%Y%m%d")]
@@ -49,7 +84,7 @@ SetOpts(
   HDATA = HDATA,
   INPUTDIR = tempdir(),
   WDIR = tempdir(),
-  back = 3,
+  back = 7,
   WWW = 290,
   Ysum = 2018,
   Wsum = 40,
@@ -61,147 +96,123 @@ SetOpts(
   MOMOgroups = list("Total"="age >= 0 | is.na(age)"),
   MOMOmodels = list("Total"="LINE_SIN"))
 
-RunMoMo()
+x <- BenchmarkDelay()
 
-dataExport$aggr
+d <- x[delayVersion %in% c("original","original+season"),c(
+  "YoDi","WoDi","delayVersion","nb","zscore",
+  "predzscore0","predzscore1","predzscore2","predzscore3","predzscore4","predzscore5",
+  "pred0","pred1","pred2","pred3","pred4","pred5",
+  "WR0","WR1","WR2","WR3","WR4","WR5"
+  )]
+setnames(d,c("predzscore0","predzscore1","predzscore2","predzscore3","predzscore4","predzscore5"),c("pzscore0","pzscore1","pzscore2","pzscore3","pzscore4","pzscore5"))
+d <- melt.data.table(d[delayVersion=="original"],id.vars=c("YoDi","WoDi","delayVersion","nb","zscore"),measure=patterns("^pzscore","^pred","^WR"))
+setnames(d,c("value1","value2","value3"),c("pzscore","pnb","WR"))
+d[,delay:=as.numeric(variable)-1]
+
+d[,error_pnb:=pnb-nb]
+
+d[,truePos:=zscore>2]
+d[,testPos:=pzscore>2]
+
+d[,test_results:=as.character(NA)]
+d[truePos==TRUE & testPos==TRUE, test_results:="TP"]
+d[truePos==FALSE & testPos==FALSE, test_results:="TN"]
+d[truePos==FALSE & testPos==TRUE, test_results:="FP"]
+d[truePos==TRUE & testPos==FALSE, test_results:="FN"]
+
 ```
 
-```{r eval=FALSE, include=FALSE}
-aggr <- copy(dataExport$aggr)
-setDT(aggr)
-aggr <- aggr[order(aggr$wk),]
+## Number of deaths recorded per week
 
-#* Drop obs in week of aggregation
-aggr <- aggr[-nrow(aggr),]
-
-modellingWeeks <- momoAttr$PRWEEK:momoAttr$WEEK2
-modellingWeeks <- modellingWeeks[modellingWeeks > min(aggr$wk)+5]
-
-aggr$sin52 <- sin(aggr$WoDi*2*pi/52)
-aggr$cos52 <- cos(aggr$WoDi*2*pi/52)
-
-aggr$sin26 <- sin(aggr$WoDi*2*pi/26)
-aggr$cos26 <- cos(aggr$WoDi*2*pi/26)
-
-aggr[,nb_lag1:=shift(nb)]
-aggr[,nb_lag2:=shift(nb,n=2L)]
-aggr[,nb_lag3:=shift(nb,n=3L)]
-
-fit <- glm(nb~splines::ns(WR1,4)+closedA+YoDi+sin(WoDi*2*pi/52)+cos(WoDi*2*pi/52),data=aggr[aggr$wk %in% modellingWeeks,],family="poisson")
-
-x <- as.matrix(aggr[aggr$wk %in% modellingWeeks,c("sin52","cos52","sin26","cos26","WR0","WR1","WR2","WR3","nb_lag1","nb_lag2","nb_lag3")])
-y <- aggr[aggr$wk %in% modellingWeeks,]$nb
-
-s <- RAWmisc::ScaleCreate(x)
-
-fit <- glmnet::cv.glmnet(x=RAWmisc::ScaleApply(x,s),y=y)
-coef(fit)
-p <- predict(fit,RAWmisc::ScaleApply(x,s))
-
-aggr[aggr$wk %in% modellingWeeks,pred:=p]
-
-plot(nb~pred,data=aggr[aggr$wk %in% modellingWeeks])
-fit <- lm(nb~WR3,data=aggr[aggr$wk %in% modellingWeeks])
-summary(fit)
-
-p <- predict(fit,aggr[aggr$wk %in% modellingWeeks])
-aggr[aggr$wk %in% modellingWeeks,pred2:=p]
-
-plot(nb~pred2,data=aggr[aggr$wk %in% modellingWeeks])
-
-mean(sqrt((aggr$pred-aggr$nb)^2),na.rm=T)
-mean(sqrt((aggr$pred2-aggr$nb)^2),na.rm=T)
-
-
-res <- data.table(x,y,p)
-res[,r:=p-y]
-plot(r~p,data=res)
-mean(res$r^2)
-
-
-AIC(fit)
-fit <- glm(nb~WR0+WR1+closed+sin(WoDi*2*pi/52)+cos(WoDi*2*pi/52),data=aggr[aggr$wk %in% modellingWeeks,],family=gaussian)
-AIC(fit)
-
-summary(fit)
-plot(fit)
-runData <- copy(runData)
-for(r in 0:momoAttr$delayCorr){
-  form <- "nb~closed+YoDi"
-  for(k in 0:r){
-    form <- sprintf("%s+%ssplines::ns(WR%s,3)",k)
-  }
-  fit <- glm(as.formula(form),data=runData[runData$wk %in% modellingWeeks],family="poisson")
-  summary(fit)
-  od <- max(1,sum(fit$weights * fit$residuals^2)/fit$df.r)
-
-  p <- predict(fit,newdata=runData,type="response")
-  stdp <- predict(fit,newdata=runData,se.fit=T)$se.fit
-
-  predvar <- sprintf("pred%s",r)
-
-  UPIvar <- sprintf("UPI%s",r)
-  LPIvar <- sprintf("LPI%s",r)
-
-  UCIvar <- sprintf("UCI%s",r)
-  LCIvar <- sprintf("LCI%s",r)
-
-  runData[,(predvar):=p]
-
-  runData[,(UPIvar):=(p^(2/3)+ zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
-  runData[,(LPIvar):=(p^(2/3)- zvalue*((4/9)*(p^(1/3))*(od+(stdp^2)*(p)))^(1/2))^(3/2)]
-
-  runData[,(UCIvar):=p + zvalue*stdp]
-  runData[,(LCIvar):=p - zvalue*stdp]
-
-  var <- sprintf("p%s",r)
-  runData[,(var):=NULL]
-}
+```{r echo=TRUE, fig.height=5, fig.width=7, message=FALSE, warning=FALSE}
+q <- ggplot(d,aes(x=delay,y=WR/nb*100,group=delay))
+q <- q + geom_boxplot()
+q <- q + scale_x_continuous("Lag")
+q <- q + scale_y_continuous("Percent of deaths recorded")
+q
 ```
 
+## Raw correlations
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+Here we investigate the correlation between:
 
-## Vignette Info
+1. The true number of recorded deaths and the predicted deaths for lags of between 0 and 5 weeks
+2. The true zscore and the predicted zscore (i.e. the z-score calculated using the predicted number of deaths) for lags of between 0 and 5 weeks
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
-
-## Styles
-
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
-
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+d[,.(
+  corr_nb=cor(nb,pnb,use="pairwise.complete.obs"),
+  corr_zscore=cor(zscore,pzscore,use="pairwise.complete.obs")
+),keyby=.(delayVersion,delay)]
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+You can see that for a lag of 0 week, there is extremely minimal correlation between the predicted number of recorded deaths and the true number of recorded deaths. For a lag of 1 week, there is a negative correlation between the true z-score and the predicted z-score.
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+These results improve for a lag of 1 week, but are still not good. With a lag of 2 or more weeks, the results seem to be acceptable.
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+```{r echo=TRUE, fig.height=5, fig.width=7, message=FALSE, warning=FALSE}
+q <- ggplot(d,aes(x=pzscore,y=zscore))
+q <- q + geom_point()
+q <- q + facet_grid(delayVersion~delay,scales="free")
+q <- q + scale_x_continuous("Z-score using predicted number of deaths at different lags")
+q <- q + scale_y_continuous("True Z-score")
+q
 ```
 
-Also a quote using `>`:
+```{r echo=TRUE, fig.height=5, fig.width=7, message=FALSE, warning=FALSE}
+q <- ggplot(d,aes(x=pnb,y=nb))
+q <- q + geom_point()
+q <- q + facet_grid(delayVersion~delay,scales="free")
+q <- q + scale_x_continuous("Predicted number of deaths at different lags")
+q <- q + scale_y_continuous("True number of recorded deaths")
+q
+```
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+We see that the graphs reinforce these findings. Poor performance in lag 0, bad performance in lag 1, and acceptable-to-good performance for lag 2+.
+
+## Performances for excess mortality alerts
+
+We now need to investigate the performance of the alerts. That is, if excess mortality is detected in lag 0, is this actually a true alert?
+
+Here we present the raw numbers, where `truePos` represents if it is a true excess mortality event or not, and `testPos` represents if the predicted number of deaths created an excess mortality alert or not:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+xtabs(~d$truePos+d$testPos+d$delay)
+```
+
+We now list the number of true positives `tp`, true negatives `tn`, false positives `fp`, false negatives `fp`, and the positive predictive value `ppv`, negative predictive value `npv`, sensitivity `sens`, and specificity `spec`.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+results <- d[,.(
+  tp=TP(test_results),
+  tn=TN(test_results),
+  fp=FP(test_results),
+  fn=FN(test_results),
+  ppv=RAWmisc::Format(PPV(test_results)*100,0),
+  npv=RAWmisc::Format(NPV(test_results)*100,0),
+  sens=RAWmisc::Format(SENS(test_results)*100,0),
+  spec=RAWmisc::Format(SPEC(test_results)*100,0)
+),keyby=.(delay)]
+
+print(results)
+```
+
+We can see that the performance for lags of 0 and 1 week is poor, while lags of 2+ are acceptable.
+
+## Biases
+
+We now plot the bias (predicted number of deaths minus actual number of deaths) against the true Z-score for different lags.
+
+```{r echo=TRUE, fig.height=5, fig.width=7, message=FALSE, warning=FALSE}
+q <- ggplot(d,aes(x=zscore,y=error_pnb))
+q <- q + geom_point()
+q <- q + facet_grid(delayVersion~delay,scales="free")
+q <- q + scale_x_continuous("True Z-Score")
+q <- q + scale_y_continuous("Bias (predicted number of deaths minus actual number of deaths)")
+q
+```
+
+We see that in lags 0 and 1 there is a severe tendency to overestimate the number of deaths when there are less than normal (i.e. leading to false positives) and a severe tendency to underestimate the number of deaths when there are more deaths than normal (i.e. leading to false negatives). This explains the poor findings in the "Performances for excess mortality alerts" section.
+
+We do not observe noticeable biases in lags 2+.
+

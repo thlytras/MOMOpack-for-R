@@ -34,9 +34,6 @@
 delayMOMO_original <- function(aggr, zvalue=1.96) {
   aggr <- aggr[order(aggr$wk),]
 
-  #* Drop obs in week of aggregation # NEW!!
-  #aggr <- aggr[-nrow(aggr),]
-
   # the period of registration for a death week XX
   aggr$closed0 <- aggr$closed + vecshift(aggr$closedA, 1)
   for (VV in 1:attr(aggr, "delayCorr")) {
@@ -112,6 +109,9 @@ delayMOMO_original <- function(aggr, zvalue=1.96) {
   # we generate the CORRECTED number of death
   aggr$nbc[aggr$wk < attr(aggr, "WEEK2")] <- aggr$nb[aggr$wk < attr(aggr, "WEEK2")]
   aggr$nbc[aggr$wk >= attr(aggr, "WEEK2") & aggr$wk <= attr(aggr, "WEEK")] <- pmax(aggr$pred[aggr$wk >= attr(aggr, "WEEK2") & aggr$wk <= attr(aggr, "WEEK")], aggr$nb[aggr$wk >= attr(aggr, "WEEK2") & aggr$wk <= attr(aggr, "WEEK")], na.rm=TRUE)
+
+  #* Drop obs in week of aggregation # NEW!!
+  aggr <- aggr[-nrow(aggr),]
 
   return(aggr)
 }

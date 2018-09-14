@@ -35,7 +35,7 @@ delayMOMO_original <- function(aggr, zvalue=1.96) {
   aggr <- aggr[order(aggr$wk),]
 
   #* Drop obs in week of aggregation # NEW!!
-  aggr <- aggr[-nrow(aggr),]
+  #aggr <- aggr[-nrow(aggr),]
 
   # the period of registration for a death week XX
   aggr$closed0 <- aggr$closed + vecshift(aggr$closedA, 1)

@@ -50,6 +50,8 @@ makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
   if (length(histPer)!=1 || !is.numeric(histPer) || is.na(histPer))
     stop("Argument 'histPer' should be the length of retrospective historical study period in weeks.")
 
+  dataExport$raw <- copy(df)
+
   for (g in names(groups)) {
     if (is.na(groups[[g]])) {
       names(df)[names(df)==g] <- sprintf("GRP%s", g)

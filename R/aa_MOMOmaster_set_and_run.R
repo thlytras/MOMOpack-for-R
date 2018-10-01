@@ -21,6 +21,7 @@
 #' @param useAUTOMN Keep using the column name "Automn" (instead of "Autumn") as in Stata MOMOpack
 #' @param datesISO When saving dates in text files, use ISO format (standard in R) instead of the Stata "\%d" format
 #' @param plotGraphs Setting this to FALSE suppressess the plotting of the various graphs (and saves time)
+#' @param removeDataAfterDoA Set this to FALSE to include people who were registered/died after DoA
 #' @param delayVersion Using the "original" delay code or the "2017-12" delay code
 #' @param MOMOgroups Definition of the groups to be analyzed
 #' @param MOMOmodels Names in the following vector should correspond to the MOMOgroups and the corresponding values (model to use for each group) should be one of "LINE", "SPLINE", "LINE_SIN", "SPLINE_SIN"
@@ -47,6 +48,7 @@ SetOpts <- function(
   useAUTOMN = TRUE,
   datesISO = FALSE,
   plotGraphs = TRUE,
+  removeDataAfterDoA = TRUE,
   delayVersion = "original",
   MOMOgroups = list(
     "0to4" =  "age >= 0 & age <=4",
@@ -88,6 +90,7 @@ SetOpts <- function(
   opts$useAUTOMN <- useAUTOMN
   opts$datesISO <- datesISO
   opts$plotGraphs <- plotGraphs
+  opts$removeDataAfterDoA <- removeDataAfterDoA
   opts$delayVersion <- delayVersion
   opts$MOMOgroups <- MOMOgroups
   opts$MOMOmodels <- MOMOmodels
@@ -174,7 +177,7 @@ RunMoMo <- function(){
     # A little bit of processing of the data
     MOMOfile$DoD <- as.Date(MOMOfile$DoD, origin="1960-1-1")
     MOMOfile$DoR <- as.Date(MOMOfile$DoR, origin="1960-1-1")
-    MOMOfile <- MOMOfile[MOMOfile$DoD<=opts$DoA & MOMOfile$DoR<=opts$DoA,]
+    if(opts$removeDataAfterDoA) MOMOfile <- MOMOfile[MOMOfile$DoD<=opts$DoA & MOMOfile$DoR<=opts$DoA,]
     hfile$date <- as.Date(hfile$date)
 
     if(opts$verbose) cat(sprintf("DONE (in %s seconds)\n", round(t1[3], 2)))

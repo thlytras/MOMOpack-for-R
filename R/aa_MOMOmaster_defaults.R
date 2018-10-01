@@ -16,7 +16,7 @@ momoAttr <- new.env(parent = emptyenv())
 #' @export opts
 opts <- new.env(parent = emptyenv())
 
-opts$delayVersionAvailable <- c("original","original+season","2017-12","richard")
+opts$delayVersionAvailable <- c("original","original+season","2017-12","richard","richard1","richard2","richard3")
 
 opts$setByUser <- FALSE
 

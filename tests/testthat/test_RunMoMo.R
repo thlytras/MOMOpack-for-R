@@ -1,4 +1,4 @@
-context("RunMoMo")
+context("RunMoMo base functionality")
 
 # delay="original"
 test_that("Check Complete (with MFILE/HFILE), delay='original'", {
@@ -26,7 +26,7 @@ test_that("Check Complete (with MFILE/HFILE), delay='original'", {
   RunMoMo()
 
   res <- data.table::fread(file.path(opts$WDIR,"MOMOv4-3-Denmark-2013-52","EUROMOMO-COMPLETE-Denmark-2013-52","EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt"))
-  expectedRes <- data.table::fread(system.file("testdata", "EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt", package = "momo"))
+  expectedRes <- data.table::fread(system.file("testdata", "original_EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt", package = "momo"))
   expectedRes <- expectedRes[wk2 != max(wk2)]
   expect_equal(res,expectedRes)
 })
@@ -59,7 +59,7 @@ test_that("Check Complete (with MDATA/HDATA), delay='original'", {
   RunMoMo()
 
   res <- data.table::fread(file.path(opts$WDIR,"MOMOv4-3-Denmark-2013-52","EUROMOMO-COMPLETE-Denmark-2013-52","EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt"))
-  expectedRes <- data.table::fread(system.file("testdata", "EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt", package = "momo"))
+  expectedRes <- data.table::fread(system.file("testdata", "original_EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt", package = "momo"))
   expectedRes <- expectedRes[wk2 != max(wk2)]
   expect_equal(res,expectedRes)
 })
@@ -90,7 +90,7 @@ test_that("Check restricted, delay='original'", {
   RunMoMo()
 
   res <- data.table::fread(file.path(opts$WDIR,"MOMOv4-3-Denmark-2013-52","EUROMOMO-RESTRICTED-Denmark-2013-52","EUROMOMOv4-3-RESTRICTED-Denmark-2013-52.txt"))
-  expectedRes <- data.table::fread(system.file("testdata", "EUROMOMOv4-3-RESTRICTED-Denmark-2013-52.txt", package = "momo"))
+  expectedRes <- data.table::fread(system.file("testdata", "original_EUROMOMOv4-3-RESTRICTED-Denmark-2013-52.txt", package = "momo"))
   expectedRes <- expectedRes[wk2 != max(wk2)]
   expect_equal(res,expectedRes)
 })
@@ -125,38 +125,7 @@ test_that("Check Complete (with MDATA/HDATA) is the same as momo::dataExport$toS
   res <- data.table::rbindlist(dataExport$toSave,fill=T)
 
   res <- data.table::fread(file.path(opts$WDIR,"MOMOv4-3-Denmark-2013-52","EUROMOMO-COMPLETE-Denmark-2013-52","EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt"))
-  expectedRes <- data.table::fread(system.file("testdata", "EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt", package = "momo"))
+  expectedRes <- data.table::fread(system.file("testdata", "original_EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt", package = "momo"))
   expectedRes <- expectedRes[wk2 != max(wk2)]
   expect_equal(res,expectedRes)
 })
-
-# delay="2017-12"
-test_that("Check Complete (with MFILE/HFILE), delay='2017-12'", {
-  SetOpts(
-    DoA=as.Date("2013-12-31"),
-    DoPR=as.Date("2008-1-1"),
-    WStart=1,
-    WEnd=52,
-    country = "Denmark",
-    source = "SSI",
-    MFILE = "DoD_DoR.txt",
-    HFILE = "holidays.txt",
-    INPUTDIR = system.file("testdata",package="momo"),
-    WDIR = tempdir(),
-    back = 3,
-    WWW = 290,
-    Ysum = 2013,
-    Wsum = 40,
-    USEglm2 = TRUE,
-    useAUTOMN = TRUE,
-    datesISO = FALSE,
-    plotGraphs = FALSE,
-    delayVersion = "2017-12")
-
-  #RunMoMo()
-
-  #res <- data.table::fread(file.path(opts$WDIR,"MOMOv4-3-Denmark-2013-52","EUROMOMO-COMPLETE-Denmark-2013-52","EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt"))
-  #expectedRes <- data.table::fread(system.file("testdata", "EUROMOMOv4-3-COMPLETE-Denmark-2013-52.txt", package = "momo"))
-  expect_equal("x","x")
-})
-

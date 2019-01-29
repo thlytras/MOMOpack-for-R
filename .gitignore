@@ -1,5 +1,3 @@
-# Ignore everything in this directory
-*
-# Except these files
-!.gitignore 
-!.MOMOmaster.R
+.Rproj.user
+.Rhistory
+

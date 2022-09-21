@@ -8,7 +8,7 @@
 # Function to prepare a MOMO input file
 
 makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
-	WStart, WEnd, Ysum, Wsum,
+	WStart, WEnd, Ysum, Wsum, Ydrop=NULL, Wdrop=NULL,
 	colnames=c("DoD", "DoR", "age"), 
 	groups=NULL, models=rep("LINE_SIN", length(groups)), delayCorr=3, histPer=290,
 	compatibility.mode=FALSE) {
@@ -74,8 +74,8 @@ makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
   attr(df, "histPer") <- histPer
 
   # Automatically calculate Ydrop and Wdrop, based on DoA
-  attr(df, "Ydrop") <- (isoweek(DoA, "both_num") %/% 100) - (isoweek(DoA)<=21)
-  attr(df, "Wdrop") <- ifelse((isoweek(DoA, "both_num") %% 100)>21 & (isoweek(DoA, "both_num") %% 100)<40, 21, 40)
+  attr(df, "Ydrop") <- if (is.null(Ydrop)) (isoweek(DoA, "both_num") %/% 100) - (isoweek(DoA)<=21) else Ydrop
+  attr(df, "Wdrop") <- if (is.null(Wdrop)) ifelse((isoweek(DoA, "both_num") %% 100)>21 & (isoweek(DoA, "both_num") %% 100)<40, 21, 40) else Wdrop
 
   # DEATHS
   # We generate nb = total number of death known in the series

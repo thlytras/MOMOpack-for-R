@@ -63,12 +63,13 @@ opts$WDIR <- "./output"
 opts$back <- 3
 
 # choose length of retrospective historical study period in weeks
-opts$WWW <- 290
+opts$WWW <- floor(365.25*8/7)
 
 # Drop weeks after this limit from the retrospective historical study period;
 # do not modify this unless you need to.
 opts$Ydrop <- NULL
 opts$Wdrop <- NULL
+opts$DropPeriods <- "(YoDi >= 2020) & (YoDi <= 2022)"
 
 # START OF CUSUM CHART: Week for CUSUM to be set to 0
 opts$Ysum = 2009
@@ -149,7 +150,7 @@ cat(sprintf("DONE (in %s seconds)\n", round(t1[3], 2)))
 cat("\nCreating MOMO input... ")
 t2 <- system.time({
   MOMOinput <- makeMOMOinput(MOMOfile, opts$DoA, opts$DoPR, hfile, 
-    Ydrop = opts$Ydrop, Wdrop = opts$Wdrop,
+    Ydrop = opts$Ydrop, Wdrop = opts$Wdrop, DropPeriods=opts$DropPeriods,
     country=opts$country, source=opts$source, colnames=c("DoD", "DoR", "age"),
     WStart=opts$WStart, WEnd=opts$WEnd, Ysum=opts$Ysum, Wsum=opts$Wsum,
     groups=MOMOgroups, models=MOMOmodels, delayCorr=opts$back, histPer=opts$WWW, 

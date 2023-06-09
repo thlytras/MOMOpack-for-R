@@ -8,7 +8,7 @@
 # Function to prepare a MOMO input file
 
 makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
-	WStart, WEnd, Ysum, Wsum, Ydrop=NULL, Wdrop=NULL,
+	WStart, WEnd, Ysum, Wsum, Ydrop=NULL, Wdrop=NULL, DropPeriods="",
 	colnames=c("DoD", "DoR", "age"), 
 	groups=NULL, models=rep("LINE_SIN", length(groups)), delayCorr=3, histPer=290,
 	compatibility.mode=FALSE) {
@@ -72,6 +72,7 @@ makeMOMOinput <- function(df, DoA, DoPR, hfile, country, source,
   attr(df, "Wsum") <- Wsum
   attr(df, "delayCorr") <- delayCorr
   attr(df, "histPer") <- histPer
+  attr(df, "DropPeriods") <- DropPeriods
 
   # Automatically calculate Ydrop and Wdrop, based on DoA
   attr(df, "Ydrop") <- if (is.null(Ydrop)) (isoweek(DoA, "both_num") %/% 100) - (isoweek(DoA)<=21) else Ydrop

@@ -45,6 +45,7 @@ excessMOMO <- function(aggr, version, useAUTOMN, USEglm2, zvalue=1.96) {
   # Conditions for modelling
   # We remove "winter" and "summer"...actually we keep spring and autumn
   aggr$COND3[(aggr$WoDi>attr(aggr, "SPRING")[1] & aggr$WoDi<attr(aggr, "SPRING")[2]) | (aggr$WoDi>attr(aggr, "AUTUMN")[1] & aggr$WoDi<attr(aggr, "AUTUMN")[2])] <- 1
+  aggr$COND3[eval(parse(text=attr(aggr, "DropPeriods")), aggr)] <- NA
   # We remove the previous weeks if there is no unusual excess observed
   aggr$COND4 <- as.integer(aggr$YoDi<attr(aggr, "Ydrop") | (aggr$YoDi==attr(aggr, "Ydrop") & aggr$WoDi<attr(aggr, "Wdrop")))
   #we remove the period with delay 
